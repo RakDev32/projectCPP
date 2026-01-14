@@ -11,17 +11,19 @@ void Hunter::update(float dt) {
     graphics::MouseState ms;
     graphics::getMouseState(ms);
 
-    graphics::getMouseState(ms);
-    // Ο παίκτης ακολουθεί τον κέρσορα [cite: 95, 101]
-    m_pos_x = ms.cur_pos_x;
-    m_pos_y = ms.cur_pos_y;
+    float dx = ms.cur_pos_x - m_pos_x;
+    float dy = ms.cur_pos_y - m_pos_y;
 
-    // Ενημέρωση όλων των κόμβων του δικτυώματος να ακολουθούν το κέντρο
+    float len = std::sqrt(dx * dx + dy * dy);
+    if (len > 1.0f) {
+        dx /= len; dy /= len;
+        const float speed = 250.0f;
+        m_pos_x += dx * speed * dt;
+        m_pos_y += dy * speed * dt;
+    }
+
     for (auto* node : m_nodes) {
-        if (node) {
-            node->setX(m_pos_x);
-            node->setY(m_pos_y);
-        }
+        if (node) { node->setX(m_pos_x); node->setY(m_pos_y); }
     }
 }
 

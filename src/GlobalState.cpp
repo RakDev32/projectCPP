@@ -2,6 +2,7 @@
 #include "Hunter.h"
 #include "Virus.h"
 #include "Node.h"
+
 #include <iostream>
 
 // 1. Αρχικοποίηση του static δείκτη (ΥΠΟΧΡΕΩΤΙΚΟ)
@@ -31,6 +32,17 @@ void GlobalState::init() {
         float ry = rand() % 600;
         m_entities.push_back(new Virus(rx, ry)); // ΠΟΛΥΜΟΡΦΙΣΜΟΣ
     }
+
+    for (int i = 0; i < 30; i++) {
+        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
+    }
+}
+void GlobalState::destroyInstance()
+{
+    delete m_instance;
+    m_instance = nullptr;
+
+
 }
 
 void GlobalState::update(float dt) {
@@ -58,7 +70,27 @@ void GlobalState::update(float dt) {
 }
 
 void GlobalState::draw() {
+        
+    for (auto* f : m_food) {
+        if (f) f->draw();
+    }
+
     for (auto* entity : m_entities) {
         if (entity) entity->draw();
     }
+    
+
+    // 2) Draw entities
+    for (auto* entity : m_entities) {
+        if (entity) entity->draw();
+    }
+
+    // 3) Draw HUD
+    graphics::Brush br;
+    br.fill_color[0] = 1.0f; // R
+    br.fill_color[1] = 1.0f; // G
+    br.fill_color[2] = 1.0f; // B
+    br.fill_opacity = 1.0f;
+    graphics::drawText(10, 20, 16, "Score: " + std::to_string(m_score),br);
+    graphics::drawText(10, 40, 16, "Food: " + std::to_string(m_food.size()),br);
 }

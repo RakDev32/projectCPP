@@ -4,6 +4,10 @@
 // Callback για τη σχεδίαση των γραφικών
 void draw() {
     GlobalState::getInstance()->draw();
+
+    const float dt = 0.016f;               // fixed timestep (60 FPS feel)
+    GlobalState::getInstance()->update(dt);
+    GlobalState::getInstance()->draw();
 }
 
 // Callback για την ανανέωση της λογικής (update loop)
@@ -20,7 +24,6 @@ int main() {
 
     // 3. Ορισμός των functions που θα καλεί η βιβλιοθήκη
     graphics::setDrawFunction(draw);
-    graphics::setUpdateFunction(update);
 
     // 4. Ρύθμιση καμβά (Virtual Coordinates) [cite: 88]
     graphics::setCanvasSize(1000, 600);
@@ -35,7 +38,8 @@ int main() {
 
     // 7. Καθαρισμός μνήμης κατά την έξοδο (Destructor του Singleton) [cite: 76]
     // Το GlobalState θα καθαρίσει όλους τους Organisms και Nodes
-    delete GlobalState::getInstance();
+    GlobalState::destroyInstance();
+
 
     return 0;
 }

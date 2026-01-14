@@ -18,6 +18,7 @@ private:
     std::vector<class Organism*> m_entities;
 
     std::vector<class Node*> m_food; // STL συλλογή για τα "φαγητά"
+    
 
 
 public:
@@ -25,6 +26,7 @@ public:
     static GlobalState* getInstance();
 
     // Υποχρεωτικές μέθοδοι [cite: 87]
+    static void destroyInstance();
     void init();
     void update(float dt);
     void draw();
@@ -34,6 +36,8 @@ public:
     float getCanvasHeight() const { return m_canvas_height; }
     int getScore() const { return m_score; }
     void addScore(int s) { m_score += s; }
+
+
 
     // Καταστροφέας για αποδέσμευση δυναμικής μνήμης [cite: 76]
     ~GlobalState();

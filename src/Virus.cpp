@@ -7,22 +7,22 @@ Virus::Virus(float x, float y) : Organism(x, y) {
 }
 
 void Virus::update(float dt) {
-    // Τυχαία κίνηση (Random Walk) ή απλό AI
-    m_pos_x += (rand() % 3 - 1) * 2.0f;
-    m_pos_y += (rand() % 3 - 1) * 2.0f;
+    static float vx = 0.0f, vy = 0.0f;
 
-    if (!m_nodes.empty()) {
-        m_nodes[0]->setX(m_pos_x);
-        m_nodes[0]->setY(m_pos_y);
-    }
+    // λίγο random steering
+    vx += (rand() % 3 - 1) * 20.0f * dt;
+    vy += (rand() % 3 - 1) * 20.0f * dt;
+
+    // clamp speed
+    float speed = std::sqrt(vx * vx + vy * vy);
+    const float maxSpeed = 120.0f;
+    if (speed > maxSpeed) { vx = vx / speed * maxSpeed; vy = vy / speed * maxSpeed; }
+
+    m_pos_x += vx * dt;
+    m_pos_y += vy * dt;
 
     for (auto* node : m_nodes) {
-        if (node) {
-            // Υποθέτουμε ότι έχεις setX/setY στον Node
-            node->setX(m_pos_x);
-            node->setY(m_pos_y);
-        }
-
+        if (node) { node->setX(m_pos_x); node->setY(m_pos_y); }
     }
 }
 
