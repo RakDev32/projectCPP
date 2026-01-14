@@ -5,21 +5,42 @@
 class Organism {
 protected:
     std::vector<Node*> m_nodes;
-    float m_pos_x, m_pos_y;
-    float vx, vy;
+
+    float m_x = 0.0f;
+    float m_y = 0.0f;
+      
+    float m_vx = 0.0f;
+    float m_vy = 0.0f;
+
+    bool m_alive = true;
+
 
 public:
-    // ΕΔΩ ΜΟΝΟ Η ΔΗΛΩΣΗ (Πρόσεξε το ερωτηματικό στο τέλος)
     Organism(float x, float y);
-
-    float getX() const { return m_pos_x; }
-    float getY() const { return m_pos_y; }
-
-    virtual void update(float dt) = 0;
-    virtual void draw() = 0;
     virtual ~Organism();
+    bool isAlive() const { return m_alive; }
+    void kill() { m_alive = false; }
+
+    // position
+    float getX() const { return m_x; }
+    float getY() const { return m_y; }
+    void setPosition(float x, float y) { m_x = x; m_y = y; }
+
+    // velocity
+    float getVx() const { return m_vx; }
+    float getVy() const { return m_vy; }
+    void setVelocity(float vx, float vy) { m_vx = vx; m_vy = vy; }
+    
+    float getRadius() const;
+    void setRadius(float r);
+    void growByArea(float eatenRadius);
+    // nodes
     void addNode(Node* n);
 
-    // Μέθοδος για το collision που φτιάξαμε πριν
+    // collisions
     bool checkCollisionWithNode(const Node* target) const;
+
+    // polymorphic API
+    virtual void update(float dt) = 0;
+    virtual void draw() const = 0;
 };

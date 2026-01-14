@@ -2,9 +2,11 @@
 #include "graphics.h"
 #include <vector>
 #include "Organism.h" // Η κλάση βάσης που θα φτιάξεις
+class Hunter;
 
 class GlobalState {
 private:
+
     // Singleton pattern: Ιδιωτικός constructor
     GlobalState() {}
     static GlobalState* m_instance;
@@ -13,6 +15,16 @@ private:
     float m_canvas_width = 1000.0f;
     float m_canvas_height = 500.0f;
     int m_score = 0;
+    float m_worldW = 4000.0f;
+    float m_worldH = 4000.0f;
+
+    float m_camX = 0.0f;
+    float m_camY = 0.0f;
+
+    float m_viewW = 1000.0f;
+    float m_viewH = 600.0f;
+
+    Hunter* m_player = nullptr;
 
     // Συλλογή STL για τη διαχείριση των οντοτήτων [cite: 81, 82]
     std::vector<class Organism*> m_entities;
@@ -30,6 +42,9 @@ public:
     void init();
     void update(float dt);
     void draw();
+
+    float getCamX() const { return m_camX; }
+    float getCamY() const { return m_camY; }
 
     // Getters για κεντρική πρόσβαση δεδομένων
     float getCanvasWidth() const { return m_canvas_width; }

@@ -2,7 +2,7 @@
 #include "Hunter.h"
 #include "Virus.h"
 #include "Node.h"
-
+#include <algorithm>
 #include <iostream>
 
 // 1. Αρχικοποίηση του static δείκτη (ΥΠΟΧΡΕΩΤΙΚΟ)
@@ -37,6 +37,10 @@ void GlobalState::init() {
         m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
     }
 }
+static float clampf(float v, float lo, float hi)
+{
+    return (v < lo) ? lo : (v > hi) ? hi : v;
+}
 void GlobalState::destroyInstance()
 {
     delete m_instance;
@@ -45,28 +49,123 @@ void GlobalState::destroyInstance()
 
 }
 
-void GlobalState::update(float dt) {
-    for (auto* entity : m_entities) {
-        if (entity) entity->update(dt);
+void GlobalState::update(float dt)
+{
+    if (dt <= 0.0f) return;
+    if (dt > 0.05f) dt = 0.05f; // clamp dt για σταθερότητα
+
+    // -----------------------------
+    // 1) Update all entities
+    // -----------------------------
+    for (auto* e : m_entities) {
+        if (e && e->isAlive()) {
+            e->update(dt);
+        }
     }
-    auto* hunter = dynamic_cast<Hunter*>(m_entities[0]);
 
-    if (hunter) {
-        // Loop για το φαγητό (m_food)
-        for (auto it = m_food.begin(); it != m_food.end(); ) {
-            // Χρήση της μεθόδου που φτιάξαμε στον Organism
-            if (hunter->checkCollisionWithNode(*it)) {
-                m_score += 10; // Κέρδισε πόντους
-                delete *it;    // Αποδέσμευση μνήμης
-                it = m_food.erase(it); // Αφαίρεση από το STL vector
+    // -----------------------------
+    // 2) Keep entities inside world bounds (map)
+    // -----------------------------
+    for (auto* e : m_entities) {
+        if (!e || !e->isAlive()) continue;
 
-                // Πρόσθεσε νέο Node στον Hunter για να μεγαλώσει ο γράφος
-                hunter->addNode(new Node(hunter->getX(), hunter->getY(), 10.0f));
-            } else {
-                ++it;
+        float r = e->getRadius();
+        float x = e->getX();
+        float y = e->getY();
+
+        x = clampf(x, r, m_worldW - r);
+        y = clampf(y, r, m_worldH - r);
+
+        e->setPosition(x, y);
+    }
+
+    // -----------------------------
+    // 3) Eat & grow (entity vs entity)
+    // -----------------------------
+    const float EAT_MARGIN = 1.10f;
+
+    for (int i = 0; i < (int)m_entities.size(); ++i) {
+        for (int j = i + 1; j < (int)m_entities.size(); ++j) {
+            Organism* A = m_entities[i];
+            Organism* B = m_entities[j];
+
+            if (!A || !B) continue;
+            if (!A->isAlive() || !B->isAlive()) continue;
+
+            float ax = A->getX(), ay = A->getY();
+            float bx = B->getX(), by = B->getY();
+            float rA = A->getRadius();
+            float rB = B->getRadius();
+
+            float dx = bx - ax;
+            float dy = by - ay;
+
+            float sum = rA + rB;
+            float dist2 = dx * dx + dy * dy;
+
+            if (dist2 < sum * sum) {
+                // overlap -> eat if size advantage
+                if (rA > rB * EAT_MARGIN) {
+                    A->growByArea(rB);
+                    B->kill();
+                }
+                else if (rB > rA * EAT_MARGIN) {
+                    B->growByArea(rA);
+                    A->kill();
+                }
+                // else: (προαιρετικό) separation αν δεν τρώει κανείς
             }
         }
     }
+
+    // -----------------------------
+    // 4) Player eats food (αν έχεις m_food)
+    // -----------------------------
+    if (m_player && m_player->isAlive()) {
+        Node playerFootprint(m_player->getX(), m_player->getY(), m_player->getRadius());
+
+        for (auto* f : m_food) {
+            if (!f) continue;
+
+            if (playerFootprint.checkCollision(*f)) {
+                // μεγαλώνει λίγο (με area add)
+                m_player->growByArea(f->getRadius());
+
+                // respawn food αντί για delete (πιο agar feel)
+                float nx = (float)(rand() % (int)m_worldW);
+                float ny = (float)(rand() % (int)m_worldH);
+                f->setX(nx);
+                f->setY(ny);
+            }
+        }
+    }
+
+    // -----------------------------
+    // 5) Camera follows player
+    // -----------------------------
+    if (m_player) {
+        float px = m_player->getX();
+        float py = m_player->getY();
+
+        m_camX = px - m_viewW * 0.5f;
+        m_camY = py - m_viewH * 0.5f;
+
+        m_camX = clampf(m_camX, 0.0f, m_worldW - m_viewW);
+        m_camY = clampf(m_camY, 0.0f, m_worldH - m_viewH);
+    }
+
+    // -----------------------------
+    // 6) Cleanup dead entities (safe erase/delete)
+    // -----------------------------
+    m_entities.erase(
+        std::remove_if(m_entities.begin(), m_entities.end(),
+            [](Organism* e) {
+                if (!e) return true;
+                if (!e->isAlive()) { delete e; return true; }
+                return false;
+            }),
+        m_entities.end()
+    );
 }
 
 void GlobalState::draw() {

@@ -17,8 +17,11 @@ public:
     //setters
     void setX(float x) { this->x = x; }
     void setY(float y) {this-> y= y;}
+    void setRadius(float r) { radius = r; }
+
     // Getters για να ξέρουμε πού βρίσκεται ο κόμβος
     float getX() const { return x; }
     float getY() const { return y; }
     float getRadius() const { return radius; }
+
 };

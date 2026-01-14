@@ -1,38 +1,51 @@
 #include "Organism.h"
-#include "Node.h"
 #include <cmath>
 
-// Constructor: Αρχικοποιεί τη θέση και τις ταχύτητες
-Organism::Organism(float x, float y) : m_pos_x(x), m_pos_y(y), vx(0), vy(0) {
+Organism::Organism(float x, float y)
+    : m_x(x), m_y(y), m_vx(0.0f), m_vy(0.0f)
+{
 }
 
-// Virtual Destructor: Η "σκούπα" του project
-// Πρέπει να διαγράψουμε κάθε Node που κάναμε new για να μην έχουμε memory leaks
-Organism::~Organism() {
+Organism::~Organism()
+{
     for (auto* node : m_nodes) {
-        if (node) {
-            delete node; // Αποδέσμευση δυναμικής μνήμης
-        }
+        delete node;
     }
-    m_nodes.clear(); // Καθαρισμός του STL vector
+    m_nodes.clear();
 }
 
-// Προσθήκη νέου κόμβου στο δικτύωμα (Graph)
-void Organism::addNode(Node* n) {
-    if (n) {
-        m_nodes.push_back(n); // Χρήση STL vector για αποθήκευση
-    }
+void Organism::addNode(Node* n)
+{
+    if (n) m_nodes.push_back(n);
 }
 
-// Έλεγχος σύγκρουσης με έναν εξωτερικό κόμβο (π.χ. φαγητό ή εχθρό)
-bool Organism::checkCollisionWithNode(const Node* target) const {
+bool Organism::checkCollisionWithNode(const Node* target) const
+{
     if (!target) return false;
 
-    // Ελέγχουμε κάθε κόμβο του δικού μας οργανισμού πολυμορφικά
     for (auto* my_node : m_nodes) {
         if (my_node && my_node->checkCollision(*target)) {
-            return true; // Αν έστω και ένας δικός μας κόμβος ακουμπήσει το στόχο
+            return true;
         }
     }
     return false;
+}
+float Organism::getRadius() const
+{
+    if (m_nodes.empty() || !m_nodes[0]) return 0.0f;
+    return m_nodes[0]->getRadius();
+}
+
+void Organism::setRadius(float r)
+{
+    if (!m_nodes.empty() && m_nodes[0]) {
+        m_nodes[0]->setRadius(r);
+    }
+}
+
+void Organism::growByArea(float eatenRadius)
+{
+    float r = getRadius();
+    float newR = std::sqrt(r * r + eatenRadius * eatenRadius);
+    setRadius(newR);
 }
