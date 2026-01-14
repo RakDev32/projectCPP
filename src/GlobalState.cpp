@@ -26,23 +26,15 @@ GlobalState::~GlobalState() {
 
 void GlobalState::init() {
     // ΜΟΝΟ ΔΗΜΙΟΥΡΓΙΑ ANTIKEIMENΩΝ ΕΔΩ
-    m_entities.clear();
-    m_food.clear();
-
-    // δημιούργησε player
-    m_player = new Hunter(500.0f, 300.0f);
-    m_entities.push_back(m_player);
-
-    // δημιούργησε NPCs
-    for (int i = 0; i < 15; ++i) {
-        m_entities.push_back(new Virus((float)(rand() % 1000), (float)(rand() % 600)));
+    m_entities.push_back(new Hunter(500, 300));
+    for (int i = 0; i < 5; i++) {
+        float rx = rand() % 1000;
+        float ry = rand() % 600;
+        m_entities.push_back(new Virus(rx, ry)); // ΠΟΛΥΜΟΡΦΙΣΜΟΣ
     }
 
-    // δημιούργησε food
-    for (int i = 0; i < 80; ++i) {
-        m_food.push_back(new Node((float)(rand() % (int)m_worldW),
-            (float)(rand() % (int)m_worldH),
-            6.0f));
+    for (int i = 0; i < 30; i++) {
+        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
     }
 }
 static float clampf(float v, float lo, float hi)
@@ -130,19 +122,20 @@ void GlobalState::update(float dt)
     // 4) Player eats food (αν έχεις m_food)
     // -----------------------------
     if (m_player && m_player->isAlive()) {
-        Node footprint(
-            m_player->getX(),
-            m_player->getY(),
-            m_player->getRadius()
-        );
+        Node playerFootprint(m_player->getX(), m_player->getY(), m_player->getRadius());
 
         for (auto* f : m_food) {
             if (!f) continue;
 
-            if (footprint.checkCollision(*f)) {
+            if (playerFootprint.checkCollision(*f)) {
+                // μεγαλώνει λίγο (με area add)
                 m_player->growByArea(f->getRadius());
-                f->setX((float)(rand() % (int)m_worldW));
-                f->setY((float)(rand() % (int)m_worldH));
+
+                // respawn food αντί για delete (πιο agar feel)
+                float nx = (float)(rand() % (int)m_worldW);
+                float ny = (float)(rand() % (int)m_worldH);
+                f->setX(nx);
+                f->setY(ny);
             }
         }
     }
