@@ -64,6 +64,18 @@ float Organism::getRadius() const
     return maxR;
 }
 
+float Organism::getMass() const
+{
+    float mass = 0.0f;
+    for (auto* node : m_nodes) {
+        if (node) {
+            float r = node->getRadius();
+            mass += r * r;
+        }
+    }
+    return mass;
+}
+
 void Organism::setRadius(float r)
 {
     if (!m_nodes.empty() && m_nodes[0]) {

@@ -34,6 +34,7 @@ public:
     void setVelocity(float vx, float vy) { m_vx = vx; m_vy = vy; }
     
     float getRadius() const;
+    float getMass() const;
     void setRadius(float r);
     void growByArea(float eatenRadius);
     // nodes

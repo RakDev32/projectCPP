@@ -8,9 +8,9 @@
 
 Hunter::Hunter(float x, float y) : Organism(x, y)
 {
-    addNode(new Node(x, y, 30.0f), 0.0f, 0.0f);
-    addNode(new Node(x, y, 16.0f), 28.0f, 6.0f);
-    addNode(new Node(x, y, 12.0f), -24.0f, -10.0f);
+    addNode(new Node(x, y, 26.0f), 0.0f, 0.0f);
+    addNode(new Node(x, y, 11.0f), 12.0f, 4.0f);
+    addNode(new Node(x, y, 9.0f), -10.0f, -6.0f);
     m_maxSpeed = 140.0f;
     m_accel = 320.0f;
 }
@@ -32,8 +32,8 @@ void Hunter::update(float dt)
         float dirX = dx / dist;
         float dirY = dy / dist;
 
-        float radius = getRadius();
-        float speedScale = 30.0f / std::max(radius, 10.0f);
+        float mass = std::max(getMass(), 1.0f);
+        float speedScale = 140.0f / std::sqrt(mass);
         float maxSpeed = m_maxSpeed * speedScale;
 
         m_vx += dirX * m_accel * dt;
