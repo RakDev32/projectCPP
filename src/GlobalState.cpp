@@ -41,11 +41,8 @@ void GlobalState::init() {
         m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
     }
 
-    // δημιούργησε food
-    for (int i = 0; i < 80; ++i) {
-        m_food.push_back(new Node((float)(rand() % (int)m_worldW),
-            (float)(rand() % (int)m_worldH),
-            6.0f));
+    for (int i = 0; i < 30; i++) {
+        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
     }
 }
 
