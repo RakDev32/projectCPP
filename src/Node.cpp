@@ -1,5 +1,6 @@
 #include "Node.h"
 #include "graphics.h"
+#include <cmath>
 
 Node::Node(float x, float y, float r) : x(x), y(y), radius(r)
 {
@@ -8,7 +9,7 @@ Node::Node(float x, float y, float r) : x(x), y(y), radius(r)
     color[2] = 0.2f;
 }
 
-void Node::draw()
+void Node::draw(float camX, float camY) const
 {
     graphics::Brush br;
     br.fill_color[0] = color[0];
@@ -17,7 +18,7 @@ void Node::draw()
     br.fill_opacity = 0.9f;
     br.outline_opacity = 0.0f;
 
-    graphics::drawDisk(x, y, radius, br);
+    graphics::drawDisk(x - camX, y - camY, radius, br);
 }
 
 bool Node::checkCollision(const Node& other) const
