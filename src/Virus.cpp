@@ -1,14 +1,25 @@
 #include "Virus.h"
 #include "graphics.h"
 #include "Node.h"
+#include <algorithm>
 #include <cstdlib>
 #include <cmath>
 
 Virus::Virus(float x, float y) : Organism(x, y)
 {
-    addNode(new Node(x, y, 20.0f), 0.0f, 0.0f);
-    addNode(new Node(x, y, 10.0f), -18.0f, 12.0f);
-    addNode(new Node(x, y, 8.0f), 16.0f, -8.0f);
+    float baseRadius = 14.0f + (float)(rand() % 18);
+    float r1 = baseRadius;
+    float r2 = baseRadius * 0.5f;
+    float r3 = baseRadius * 0.4f;
+
+    float offsetX = baseRadius * 0.9f;
+    float offsetY = baseRadius * 0.6f;
+
+    addNode(new Node(x, y, r1), 0.0f, 0.0f);
+    addNode(new Node(x, y, r2), -offsetX, offsetY);
+    addNode(new Node(x, y, r3), offsetX * 0.9f, -offsetY);
+
+    m_speed = 90.0f * (20.0f / std::max(baseRadius, 8.0f));
     m_wanderTimer = 0.0f;
 }
 

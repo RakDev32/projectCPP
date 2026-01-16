@@ -25,6 +25,8 @@ private:
     float m_viewH = 600.0f;
 
     Hunter* m_player = nullptr;
+    bool m_gameOver = false;
+    int m_minNpcCount = 12;
 
     // Συλλογή STL για τη διαχείριση των οντοτήτων [cite: 81, 82]
     std::vector<class Organism*> m_entities;
@@ -40,6 +42,7 @@ public:
     // Υποχρεωτικές μέθοδοι [cite: 87]
     static void destroyInstance();
     void init();
+    void reset();
     void update(float dt);
     void draw();
 

@@ -29,6 +29,8 @@ void GlobalState::init() {
     // ΜΟΝΟ ΔΗΜΙΟΥΡΓΙΑ ANTIKEIMENΩΝ ΕΔΩ
     m_entities.clear();
     m_food.clear();
+    m_score = 0;
+    m_gameOver = false;
 
     // δημιούργησε player
     m_player = new Hunter(m_worldW * 0.5f, m_worldH * 0.5f);
@@ -42,6 +44,16 @@ void GlobalState::init() {
     for (int i = 0; i < 30; i++) {
         m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
     }
+}
+
+void GlobalState::reset()
+{
+    for (auto* entity : m_entities) {
+        delete entity;
+    }
+    m_entities.clear();
+    m_food.clear();
+    init();
 }
 static float clampf(float v, float lo, float hi)
 {
@@ -79,6 +91,12 @@ void GlobalState::update(float dt)
 {
     if (dt <= 0.0f) return;
     if (dt > 0.05f) dt = 0.05f; // clamp dt για σταθερότητα
+    if (m_gameOver) {
+        if (graphics::getKeyState(graphics::SCANCODE_R)) {
+            reset();
+        }
+        return;
+    }
 
     // -----------------------------
     // 1) Update all entities
@@ -145,12 +163,18 @@ void GlobalState::update(float dt)
                     if (A == m_player) {
                         addScore(10);
                     }
+                    if (B == m_player) {
+                        m_gameOver = true;
+                    }
                     B->kill();
                 }
                 else if (rB > rA * EAT_MARGIN) {
                     B->growByArea(rA);
                     if (B == m_player) {
                         addScore(10);
+                    }
+                    if (A == m_player) {
+                        m_gameOver = true;
                     }
                     A->kill();
                 }
@@ -170,15 +194,13 @@ void GlobalState::update(float dt)
         for (auto* f : m_food) {
             if (!f) continue;
 
-            if (playerFootprint.checkCollision(*f)) {
-                // μεγαλώνει λίγο (με area add)
-                m_player->growByArea(f->getRadius());
-
-                // respawn food αντί για delete (πιο agar feel)
-                float nx = (float)(rand() % (int)m_worldW);
-                float ny = (float)(rand() % (int)m_worldH);
-                f->setX(nx);
-                f->setY(ny);
+            if (entity->checkCollisionWithNode(f)) {
+                entity->growByArea(f->getRadius());
+                if (entity == m_player) {
+                    addScore(1);
+                }
+                f->setX((float)(rand() % (int)m_worldW));
+                f->setY((float)(rand() % (int)m_worldH));
             }
         }
     }
@@ -209,6 +231,17 @@ void GlobalState::update(float dt)
             }),
         m_entities.end()
     );
+
+    int npcCount = 0;
+    for (auto* entity : m_entities) {
+        if (entity && entity != m_player) {
+            ++npcCount;
+        }
+    }
+    while (npcCount < m_minNpcCount) {
+        m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
+        ++npcCount;
+    }
 }
 
 void GlobalState::draw() {
@@ -228,6 +261,23 @@ void GlobalState::draw() {
     br.fill_opacity = 1.0f;
     graphics::drawText(10, 20, 16, "Score: " + std::to_string(m_score),br);
     graphics::drawText(10, 40, 16, "Food: " + std::to_string(m_food.size()),br);
+    if (m_gameOver) {
+        graphics::Brush overlay;
+        overlay.fill_color[0] = 0.0f;
+        overlay.fill_color[1] = 0.0f;
+        overlay.fill_color[2] = 0.0f;
+        overlay.fill_opacity = 0.6f;
+        overlay.outline_opacity = 0.0f;
+        graphics::drawRect(m_viewW * 0.5f, m_viewH * 0.5f, m_viewW, m_viewH, overlay);
+
+        graphics::Brush textBr;
+        textBr.fill_color[0] = 1.0f;
+        textBr.fill_color[1] = 1.0f;
+        textBr.fill_color[2] = 1.0f;
+        textBr.fill_opacity = 1.0f;
+        graphics::drawText(m_viewW * 0.5f - 80.0f, m_viewH * 0.5f - 10.0f, 24, "Game Over", textBr);
+        graphics::drawText(m_viewW * 0.5f - 130.0f, m_viewH * 0.5f + 20.0f, 16, "Press R to play again", textBr);
+    }
 
     // 4) Minimap
     const float miniW = 180.0f;

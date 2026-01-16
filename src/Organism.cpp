@@ -41,18 +41,6 @@ void Organism::setPosition(float x, float y)
     }
 }
 
-void Organism::setPosition(float x, float y)
-{
-    m_x = x;
-    m_y = y;
-    for (auto* node : m_nodes) {
-        if (node) {
-            node->setX(m_x);
-            node->setY(m_y);
-        }
-    }
-}
-
 bool Organism::checkCollisionWithNode(const Node* target) const
 {
     if (!target) return false;
