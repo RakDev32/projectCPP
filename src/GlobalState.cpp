@@ -39,11 +39,8 @@ void GlobalState::init() {
         m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
     }
 
-    // δημιούργησε food
-    for (int i = 0; i < 80; ++i) {
-        m_food.push_back(new Node((float)(rand() % (int)m_worldW),
-            (float)(rand() % (int)m_worldH),
-            6.0f));
+    for (int i = 0; i < 30; i++) {
+        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
     }
 }
 static float clampf(float v, float lo, float hi)
@@ -173,13 +170,15 @@ void GlobalState::update(float dt)
         for (auto* f : m_food) {
             if (!f) continue;
 
-            if (entity->checkCollisionWithNode(f)) {
-                entity->growByArea(f->getRadius());
-                if (entity == m_player) {
-                    addScore(1);
-                }
-                f->setX((float)(rand() % (int)m_worldW));
-                f->setY((float)(rand() % (int)m_worldH));
+            if (playerFootprint.checkCollision(*f)) {
+                // μεγαλώνει λίγο (με area add)
+                m_player->growByArea(f->getRadius());
+
+                // respawn food αντί για delete (πιο agar feel)
+                float nx = (float)(rand() % (int)m_worldW);
+                float ny = (float)(rand() % (int)m_worldH);
+                f->setX(nx);
+                f->setY(ny);
             }
         }
     }
