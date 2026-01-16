@@ -13,7 +13,7 @@ private:
 
     // Δεδομένα για τη ροή και την κατάσταση [cite: 86]
     float m_canvas_width = 1000.0f;
-    float m_canvas_height = 500.0f;
+    float m_canvas_height = 600.0f;
     int m_score = 0;
     float m_worldW = 4000.0f;
     float m_worldH = 4000.0f;

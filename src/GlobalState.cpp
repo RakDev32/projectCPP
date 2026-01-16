@@ -3,6 +3,7 @@
 #include "Virus.h"
 #include "Node.h"
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 // 1. Αρχικοποίηση του static δείκτη (ΥΠΟΧΡΕΩΤΙΚΟ)
@@ -26,20 +27,48 @@ GlobalState::~GlobalState() {
 
 void GlobalState::init() {
     // ΜΟΝΟ ΔΗΜΙΟΥΡΓΙΑ ANTIKEIMENΩΝ ΕΔΩ
-    m_entities.push_back(new Hunter(500, 300));
-    for (int i = 0; i < 5; i++) {
-        float rx = rand() % 1000;
-        float ry = rand() % 600;
-        m_entities.push_back(new Virus(rx, ry)); // ΠΟΛΥΜΟΡΦΙΣΜΟΣ
+    m_entities.clear();
+    m_food.clear();
+
+    // δημιούργησε player
+    m_player = new Hunter(m_worldW * 0.5f, m_worldH * 0.5f);
+    m_entities.push_back(m_player);
+
+    // δημιούργησε NPCs
+    for (int i = 0; i < 15; ++i) {
+        m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
     }
 
-    for (int i = 0; i < 30; i++) {
-        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
+    // δημιούργησε food
+    for (int i = 0; i < 80; ++i) {
+        m_food.push_back(new Node((float)(rand() % (int)m_worldW),
+            (float)(rand() % (int)m_worldH),
+            6.0f));
     }
 }
 static float clampf(float v, float lo, float hi)
 {
     return (v < lo) ? lo : (v > hi) ? hi : v;
+}
+
+static void separateEntities(Organism* a, Organism* b, float dx, float dy, float dist, float overlap)
+{
+    if (!a || !b) return;
+    if (dist < 0.001f) {
+        dx = 1.0f;
+        dy = 0.0f;
+        dist = 1.0f;
+    }
+
+    float nx = dx / dist;
+    float ny = dy / dist;
+    float push = overlap * 0.5f;
+
+    a->setPosition(a->getX() - nx * push, a->getY() - ny * push);
+    b->setPosition(b->getX() + nx * push, b->getY() + ny * push);
+
+    a->setVelocity(a->getVx() - nx * push * 2.0f, a->getVy() - ny * push * 2.0f);
+    b->setVelocity(b->getVx() + nx * push * 2.0f, b->getVy() + ny * push * 2.0f);
 }
 void GlobalState::destroyInstance()
 {
@@ -73,10 +102,17 @@ void GlobalState::update(float dt)
         float x = e->getX();
         float y = e->getY();
 
-        x = clampf(x, r, m_worldW - r);
-        y = clampf(y, r, m_worldH - r);
+        float clampedX = clampf(x, r, m_worldW - r);
+        float clampedY = clampf(y, r, m_worldH - r);
 
-        e->setPosition(x, y);
+        if (clampedX != x) {
+            e->setVelocity(-e->getVx() * 0.5f, e->getVy());
+        }
+        if (clampedY != y) {
+            e->setVelocity(e->getVx(), -e->getVy() * 0.5f);
+        }
+
+        e->setPosition(clampedX, clampedY);
     }
 
     // -----------------------------
@@ -104,6 +140,8 @@ void GlobalState::update(float dt)
             float dist2 = dx * dx + dy * dy;
 
             if (dist2 < sum * sum) {
+                float dist = std::sqrt(dist2);
+                float overlap = sum - dist;
                 // overlap -> eat if size advantage
                 if (rA > rB * EAT_MARGIN) {
                     A->growByArea(rB);
@@ -113,7 +151,9 @@ void GlobalState::update(float dt)
                     B->growByArea(rA);
                     A->kill();
                 }
-                // else: (προαιρετικό) separation αν δεν τρώει κανείς
+                else {
+                    separateEntities(A, B, dx, dy, dist, overlap);
+                }
             }
         }
     }
@@ -122,20 +162,19 @@ void GlobalState::update(float dt)
     // 4) Player eats food (αν έχεις m_food)
     // -----------------------------
     if (m_player && m_player->isAlive()) {
-        Node playerFootprint(m_player->getX(), m_player->getY(), m_player->getRadius());
+        Node footprint(
+            m_player->getX(),
+            m_player->getY(),
+            m_player->getRadius()
+        );
 
         for (auto* f : m_food) {
             if (!f) continue;
 
-            if (playerFootprint.checkCollision(*f)) {
-                // μεγαλώνει λίγο (με area add)
+            if (footprint.checkCollision(*f)) {
                 m_player->growByArea(f->getRadius());
-
-                // respawn food αντί για delete (πιο agar feel)
-                float nx = (float)(rand() % (int)m_worldW);
-                float ny = (float)(rand() % (int)m_worldH);
-                f->setX(nx);
-                f->setY(ny);
+                f->setX((float)(rand() % (int)m_worldW));
+                f->setY((float)(rand() % (int)m_worldH));
             }
         }
     }
@@ -169,19 +208,12 @@ void GlobalState::update(float dt)
 }
 
 void GlobalState::draw() {
-        
     for (auto* f : m_food) {
-        if (f) f->draw();
+        if (f) f->draw(m_camX, m_camY);
     }
 
     for (auto* entity : m_entities) {
-        if (entity) entity->draw();
-    }
-    
-
-    // 2) Draw entities
-    for (auto* entity : m_entities) {
-        if (entity) entity->draw();
+        if (entity) entity->draw(m_camX, m_camY);
     }
 
     // 3) Draw HUD
@@ -192,4 +224,68 @@ void GlobalState::draw() {
     br.fill_opacity = 1.0f;
     graphics::drawText(10, 20, 16, "Score: " + std::to_string(m_score),br);
     graphics::drawText(10, 40, 16, "Food: " + std::to_string(m_food.size()),br);
+
+    // 4) Minimap
+    const float miniW = 180.0f;
+    const float miniH = 180.0f;
+    const float miniPadding = 12.0f;
+    const float miniCenterX = m_viewW - miniW * 0.5f - miniPadding;
+    const float miniCenterY = miniH * 0.5f + miniPadding;
+
+    graphics::Brush miniBr;
+    miniBr.fill_color[0] = 0.05f;
+    miniBr.fill_color[1] = 0.05f;
+    miniBr.fill_color[2] = 0.05f;
+    miniBr.fill_opacity = 0.6f;
+    miniBr.outline_opacity = 1.0f;
+    graphics::drawRect(miniCenterX, miniCenterY, miniW, miniH, miniBr);
+
+    float scaleX = miniW / m_worldW;
+    float scaleY = miniH / m_worldH;
+    float miniLeft = miniCenterX - miniW * 0.5f;
+    float miniTop = miniCenterY - miniH * 0.5f;
+
+    graphics::Brush dotBr;
+    dotBr.fill_opacity = 1.0f;
+    dotBr.outline_opacity = 0.0f;
+
+    for (auto* f : m_food) {
+        if (!f) continue;
+        float sx = miniLeft + f->getX() * scaleX;
+        float sy = miniTop + f->getY() * scaleY;
+        dotBr.fill_color[0] = 0.2f;
+        dotBr.fill_color[1] = 0.9f;
+        dotBr.fill_color[2] = 0.2f;
+        graphics::drawDisk(sx, sy, 2.0f, dotBr);
+    }
+
+    for (auto* entity : m_entities) {
+        if (!entity) continue;
+        float sx = miniLeft + entity->getX() * scaleX;
+        float sy = miniTop + entity->getY() * scaleY;
+        if (entity == m_player) {
+            dotBr.fill_color[0] = 0.2f;
+            dotBr.fill_color[1] = 0.6f;
+            dotBr.fill_color[2] = 1.0f;
+            graphics::drawDisk(sx, sy, 3.5f, dotBr);
+        } else {
+            dotBr.fill_color[0] = 1.0f;
+            dotBr.fill_color[1] = 0.4f;
+            dotBr.fill_color[2] = 0.4f;
+            graphics::drawDisk(sx, sy, 3.0f, dotBr);
+        }
+    }
+
+    graphics::Brush viewBr;
+    viewBr.fill_opacity = 0.0f;
+    viewBr.outline_opacity = 1.0f;
+    viewBr.outline_color[0] = 1.0f;
+    viewBr.outline_color[1] = 1.0f;
+    viewBr.outline_color[2] = 1.0f;
+
+    float viewMiniW = m_viewW * scaleX;
+    float viewMiniH = m_viewH * scaleY;
+    float viewCenterX = miniLeft + (m_camX + m_viewW * 0.5f) * scaleX;
+    float viewCenterY = miniTop + (m_camY + m_viewH * 0.5f) * scaleY;
+    graphics::drawRect(viewCenterX, viewCenterY, viewMiniW, viewMiniH, viewBr);
 }
