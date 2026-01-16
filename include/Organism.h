@@ -24,7 +24,7 @@ public:
     // position
     float getX() const { return m_x; }
     float getY() const { return m_y; }
-    void setPosition(float x, float y) { m_x = x; m_y = y; }
+    void setPosition(float x, float y);
 
     // velocity
     float getVx() const { return m_vx; }
@@ -42,5 +42,5 @@ public:
 
     // polymorphic API
     virtual void update(float dt) = 0;
-    virtual void draw() const = 0;
+    virtual void draw(float camX, float camY) const = 0;
 };
