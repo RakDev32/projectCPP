@@ -142,10 +142,16 @@ void GlobalState::update(float dt)
                 // overlap -> eat if size advantage
                 if (rA > rB * EAT_MARGIN) {
                     A->growByArea(rB);
+                    if (A == m_player) {
+                        addScore(10);
+                    }
                     B->kill();
                 }
                 else if (rB > rA * EAT_MARGIN) {
                     B->growByArea(rA);
+                    if (B == m_player) {
+                        addScore(10);
+                    }
                     A->kill();
                 }
                 else {
@@ -156,10 +162,10 @@ void GlobalState::update(float dt)
     }
 
     // -----------------------------
-    // 4) Player eats food (αν έχεις m_food)
+    // 4) Entities eat food
     // -----------------------------
-    if (m_player && m_player->isAlive()) {
-        Node playerFootprint(m_player->getX(), m_player->getY(), m_player->getRadius());
+    for (auto* entity : m_entities) {
+        if (!entity || !entity->isAlive()) continue;
 
         for (auto* f : m_food) {
             if (!f) continue;

@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
+#include <utility>
 #include "Node.h"
 
 class Organism {
 protected:
     std::vector<Node*> m_nodes;
+    std::vector<std::pair<float, float>> m_nodeOffsets;
 
     float m_x = 0.0f;
     float m_y = 0.0f;
@@ -36,6 +38,7 @@ public:
     void growByArea(float eatenRadius);
     // nodes
     void addNode(Node* n);
+    void addNode(Node* n, float offsetX, float offsetY);
 
     // collisions
     bool checkCollisionWithNode(const Node* target) const;

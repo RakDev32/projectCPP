@@ -6,7 +6,9 @@
 
 Virus::Virus(float x, float y) : Organism(x, y)
 {
-    addNode(new Node(x, y, 20.0f));
+    addNode(new Node(x, y, 20.0f), 0.0f, 0.0f);
+    addNode(new Node(x, y, 10.0f), -18.0f, 12.0f);
+    addNode(new Node(x, y, 8.0f), 16.0f, -8.0f);
     m_wanderTimer = 0.0f;
 }
 
