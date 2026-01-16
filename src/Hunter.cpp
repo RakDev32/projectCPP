@@ -8,9 +8,7 @@
 
 Hunter::Hunter(float x, float y) : Organism(x, y)
 {
-    addNode(new Node(x, y, 30.0f), 0.0f, 0.0f);
-    addNode(new Node(x, y, 16.0f), 28.0f, 6.0f);
-    addNode(new Node(x, y, 12.0f), -24.0f, -10.0f);
+    addNode(new Node(x, y, 30.0f));
     m_maxSpeed = 240.0f;
     m_accel = 520.0f;
 }

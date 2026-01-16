@@ -39,11 +39,8 @@ void GlobalState::init() {
         m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
     }
 
-    // δημιούργησε food
-    for (int i = 0; i < 80; ++i) {
-        m_food.push_back(new Node((float)(rand() % (int)m_worldW),
-            (float)(rand() % (int)m_worldH),
-            6.0f));
+    for (int i = 0; i < 30; i++) {
+        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
     }
 }
 static float clampf(float v, float lo, float hi)
@@ -145,16 +142,10 @@ void GlobalState::update(float dt)
                 // overlap -> eat if size advantage
                 if (rA > rB * EAT_MARGIN) {
                     A->growByArea(rB);
-                    if (A == m_player) {
-                        addScore(10);
-                    }
                     B->kill();
                 }
                 else if (rB > rA * EAT_MARGIN) {
                     B->growByArea(rA);
-                    if (B == m_player) {
-                        addScore(10);
-                    }
                     A->kill();
                 }
                 else {
@@ -165,21 +156,23 @@ void GlobalState::update(float dt)
     }
 
     // -----------------------------
-    // 4) Entities eat food
+    // 4) Player eats food (αν έχεις m_food)
     // -----------------------------
-    for (auto* entity : m_entities) {
-        if (!entity || !entity->isAlive()) continue;
+    if (m_player && m_player->isAlive()) {
+        Node playerFootprint(m_player->getX(), m_player->getY(), m_player->getRadius());
 
         for (auto* f : m_food) {
             if (!f) continue;
 
-            if (entity->checkCollisionWithNode(f)) {
-                entity->growByArea(f->getRadius());
-                if (entity == m_player) {
-                    addScore(1);
-                }
-                f->setX((float)(rand() % (int)m_worldW));
-                f->setY((float)(rand() % (int)m_worldH));
+            if (playerFootprint.checkCollision(*f)) {
+                // μεγαλώνει λίγο (με area add)
+                m_player->growByArea(f->getRadius());
+
+                // respawn food αντί για delete (πιο agar feel)
+                float nx = (float)(rand() % (int)m_worldW);
+                float ny = (float)(rand() % (int)m_worldH);
+                f->setX(nx);
+                f->setY(ny);
             }
         }
     }
