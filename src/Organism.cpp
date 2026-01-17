@@ -1,4 +1,5 @@
 #include "Organism.h"
+#include "graphics.h"
 #include <algorithm>
 #include <cmath>
 
@@ -28,6 +29,38 @@ void Organism::addNode(Node* n, float offsetX, float offsetY)
     }
 }
 
+void Organism::addEdge(int fromIndex, int toIndex)
+{
+    if (fromIndex < 0 || toIndex < 0) return;
+    if (fromIndex >= (int)m_nodes.size() || toIndex >= (int)m_nodes.size()) return;
+    m_edges.emplace_back(fromIndex, toIndex);
+}
+
+void Organism::drawEdges(float camX, float camY) const
+{
+    graphics::Brush br;
+    br.outline_opacity = 1.0f;
+    br.fill_opacity = 0.0f;
+    br.outline_color[0] = 0.9f;
+    br.outline_color[1] = 0.9f;
+    br.outline_color[2] = 0.9f;
+
+    for (const auto& edge : m_edges) {
+        int a = edge.first;
+        int b = edge.second;
+        if (a < 0 || b < 0) continue;
+        if (a >= (int)m_nodes.size() || b >= (int)m_nodes.size()) continue;
+        const Node* na = m_nodes[a];
+        const Node* nb = m_nodes[b];
+        if (!na || !nb) continue;
+        graphics::drawLine(
+            na->getX() - camX, na->getY() - camY,
+            nb->getX() - camX, nb->getY() - camY,
+            br
+        );
+    }
+}
+
 void Organism::setPosition(float x, float y)
 {
     m_x = x;
@@ -48,6 +81,36 @@ bool Organism::checkCollisionWithNode(const Node* target) const
     for (auto* my_node : m_nodes) {
         if (my_node && my_node->checkCollision(*target)) {
             return true;
+        }
+    }
+    return false;
+}
+
+int Organism::findCollidingNode(const Node* target) const
+{
+    if (!target) return -1;
+    for (size_t i = 0; i < m_nodes.size(); ++i) {
+        auto* my_node = m_nodes[i];
+        if (my_node && my_node->checkCollision(*target)) {
+            return (int)i;
+        }
+    }
+    return -1;
+}
+
+bool Organism::checkCollisionWithOrganism(const Organism& other, int* outMyIndex, int* outOtherIndex) const
+{
+    for (size_t i = 0; i < m_nodes.size(); ++i) {
+        auto* my_node = m_nodes[i];
+        if (!my_node) continue;
+        for (size_t j = 0; j < other.m_nodes.size(); ++j) {
+            auto* other_node = other.m_nodes[j];
+            if (!other_node) continue;
+            if (my_node->checkCollision(*other_node)) {
+                if (outMyIndex) *outMyIndex = (int)i;
+                if (outOtherIndex) *outOtherIndex = (int)j;
+                return true;
+            }
         }
     }
     return false;
@@ -97,4 +160,14 @@ void Organism::growByArea(float eatenRadius)
         m_nodeOffsets[i].second *= scale;
     }
     setPosition(m_x, m_y);
+}
+
+void Organism::growNodeByArea(size_t nodeIndex, float eatenRadius)
+{
+    if (nodeIndex >= m_nodes.size()) return;
+    Node* node = m_nodes[nodeIndex];
+    if (!node) return;
+    float r = node->getRadius();
+    float newR = std::sqrt(r * r + eatenRadius * eatenRadius);
+    node->setRadius(newR);
 }

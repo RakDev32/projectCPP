@@ -8,17 +8,25 @@
 
 Hunter::Hunter(float x, float y) : Organism(x, y)
 {
-    auto* core = new Node(x, y, 24.0f);
+    auto* core = new Node(x, y, 22.0f);
     core->setColor(0.2f, 0.7f, 1.0f);
     addNode(core, 0.0f, 0.0f);
 
-    auto* petalA = new Node(x, y, 10.0f);
-    petalA->setColor(0.1f, 0.45f, 0.9f);
-    addNode(petalA, 10.0f, 5.0f);
-
-    auto* petalB = new Node(x, y, 8.0f);
-    petalB->setColor(0.05f, 0.3f, 0.7f);
-    addNode(petalB, -8.0f, -6.0f);
+    const int ringCount = 6;
+    const float ringRadius = 18.0f;
+    for (int i = 0; i < ringCount; ++i) {
+        float angle = (6.2831853f / ringCount) * i;
+        float ox = std::cos(angle) * ringRadius;
+        float oy = std::sin(angle) * ringRadius;
+        auto* node = new Node(x, y, 7.0f);
+        node->setColor(0.1f, 0.45f, 0.9f);
+        addNode(node, ox, oy);
+        addEdge(0, (int)m_nodes.size() - 1);
+        if (i > 0) {
+            addEdge((int)m_nodes.size() - 2, (int)m_nodes.size() - 1);
+        }
+    }
+    addEdge(1, (int)m_nodes.size() - 1);
 
     m_maxSpeed = 90.0f;
     m_accel = 240.0f;
@@ -62,32 +70,10 @@ void Hunter::update(float dt)
 
 void Hunter::draw(float camX, float camY) const
 {
-    graphics::Brush br;
-    br.outline_opacity = 1.0f;
-    br.fill_opacity = 0.7f;
-
-    // γραμμές μεταξύ nodes (αν έχεις πολλά)
-    if (m_nodes.size() > 1) {
-        for (size_t i = 0; i + 1 < m_nodes.size(); ++i) {
-            graphics::drawLine(
-                m_nodes[i]->getX() - camX, m_nodes[i]->getY() - camY,
-                m_nodes[i + 1]->getX() - camX, m_nodes[i + 1]->getY() - camY,
-                br
-            );
-        }
-    }
-
-    // draw nodes
-    graphics::Brush inner;
-    inner.fill_color[0] = 1.0f;
-    inner.fill_color[1] = 1.0f;
-    inner.fill_color[2] = 1.0f;
-    inner.fill_opacity = 0.5f;
-    inner.outline_opacity = 0.0f;
+    drawEdges(camX, camY);
 
     for (auto* node : m_nodes) {
         if (!node) continue;
         node->draw(camX, camY);
-        graphics::drawDisk(node->getX() - camX, node->getY() - camY, node->getRadius() * 0.35f, inner);
     }
 }

@@ -159,21 +159,22 @@ void GlobalState::update(float dt)
 
             float ax = A->getX(), ay = A->getY();
             float bx = B->getX(), by = B->getY();
-            float rA = A->getRadius();
-            float rB = B->getRadius();
+            float mA = A->getMass();
+            float mB = B->getMass();
 
             float dx = bx - ax;
             float dy = by - ay;
 
-            float sum = rA + rB;
-            float dist2 = dx * dx + dy * dy;
-
-            if (dist2 < sum * sum) {
-                float dist = std::sqrt(dist2);
-                float overlap = sum - dist;
+            int aNode = -1;
+            int bNode = -1;
+            if (A->checkCollisionWithOrganism(*B, &aNode, &bNode)) {
+                float rA = std::sqrt(std::max(mA, 1.0f));
+                float rB = std::sqrt(std::max(mB, 1.0f));
+                float dist = std::sqrt(dx * dx + dy * dy);
+                float overlap = (rA + rB) - dist;
                 // overlap -> eat if size advantage
-                if (rA > rB * EAT_MARGIN) {
-                    A->growByArea(rB);
+                if (mA > mB * EAT_MARGIN) {
+                    A->growNodeByArea((size_t)std::max(aNode, 0), rB);
                     if (A == m_player) {
                         addScore(10);
                     }
@@ -182,8 +183,8 @@ void GlobalState::update(float dt)
                     }
                     B->kill();
                 }
-                else if (rB > rA * EAT_MARGIN) {
-                    B->growByArea(rA);
+                else if (mB > mA * EAT_MARGIN) {
+                    B->growNodeByArea((size_t)std::max(bNode, 0), rA);
                     if (B == m_player) {
                         addScore(10);
                     }
@@ -208,8 +209,9 @@ void GlobalState::update(float dt)
         for (auto* f : m_food) {
             if (!f) continue;
 
-            if (entity->checkCollisionWithNode(f)) {
-                entity->growByArea(f->getRadius());
+            int hitIndex = entity->findCollidingNode(f);
+            if (hitIndex >= 0) {
+                entity->growNodeByArea((size_t)hitIndex, f->getRadius());
                 if (entity == m_player) {
                     addScore(1);
                 }
