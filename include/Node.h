@@ -13,7 +13,8 @@ public:
     // Έλεγχος σύγκρουσης με Ευκλείδεια απόσταση 
     bool checkCollision(const Node& other) const;
     
-    void draw(); // Σχεδίαση κόμβου ως δίσκο [cite: 105, 120]
+    void draw(float camX, float camY) const; // Σχεδίαση κόμβου ως δίσκο [cite: 105, 120]
+    void setColor(float r, float g, float b);
     //setters
     void setX(float x) { this->x = x; }
     void setY(float y) {this-> y= y;}
