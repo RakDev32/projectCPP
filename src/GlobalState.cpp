@@ -106,7 +106,23 @@ void GlobalState::update(float dt)
     if (dt <= 0.0f) return;
     if (dt > 0.05f) dt = 0.05f; // clamp dt για σταθερότητα
     if (m_gameOver) {
+        const float buttonW = 220.0f;
+        const float buttonH = 42.0f;
+        const float buttonX = m_viewW * 0.5f;
+        const float buttonY = m_viewH * 0.5f + 60.0f;
+
+        graphics::MouseState ms;
+        graphics::getMouseState(ms);
+        bool inside =
+            ms.cur_pos_x >= buttonX - buttonW * 0.5f &&
+            ms.cur_pos_x <= buttonX + buttonW * 0.5f &&
+            ms.cur_pos_y >= buttonY - buttonH * 0.5f &&
+            ms.cur_pos_y <= buttonY + buttonH * 0.5f;
+
         if (graphics::getKeyState(graphics::SCANCODE_R)) {
+            reset();
+        }
+        if (ms.button_left_pressed && inside) {
             reset();
         }
         return;
@@ -296,7 +312,22 @@ void GlobalState::draw() {
         textBr.fill_color[2] = 1.0f;
         textBr.fill_opacity = 1.0f;
         graphics::drawText(m_viewW * 0.5f - 80.0f, m_viewH * 0.5f - 10.0f, 24, "Game Over", textBr);
-        graphics::drawText(m_viewW * 0.5f - 130.0f, m_viewH * 0.5f + 20.0f, 16, "Press R to play again", textBr);
+        graphics::drawText(m_viewW * 0.5f - 140.0f, m_viewH * 0.5f + 20.0f, 16, "Press R or click Play Again", textBr);
+
+        graphics::Brush button;
+        button.fill_color[0] = 0.2f;
+        button.fill_color[1] = 0.6f;
+        button.fill_color[2] = 1.0f;
+        button.fill_opacity = 0.9f;
+        button.outline_opacity = 0.0f;
+        graphics::drawRect(m_viewW * 0.5f, m_viewH * 0.5f + 60.0f, 220.0f, 42.0f, button);
+
+        graphics::Brush buttonText;
+        buttonText.fill_color[0] = 1.0f;
+        buttonText.fill_color[1] = 1.0f;
+        buttonText.fill_color[2] = 1.0f;
+        buttonText.fill_opacity = 1.0f;
+        graphics::drawText(m_viewW * 0.5f - 48.0f, m_viewH * 0.5f + 66.0f, 18, "Play Again", buttonText);
     }
 
     // 4) Minimap

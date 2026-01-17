@@ -170,4 +170,12 @@ void Organism::growNodeByArea(size_t nodeIndex, float eatenRadius)
     float r = node->getRadius();
     float newR = std::sqrt(r * r + eatenRadius * eatenRadius);
     node->setRadius(newR);
+    if (r > 0.0f) {
+        float scale = newR / r;
+        for (auto& offset : m_nodeOffsets) {
+            offset.first *= scale;
+            offset.second *= scale;
+        }
+        setPosition(m_x, m_y);
+    }
 }
