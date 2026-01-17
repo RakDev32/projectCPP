@@ -26,10 +26,6 @@ int main() {
     graphics::setCanvasSize(1000, 600);
     graphics::setCanvasScaleMode(graphics::CANVAS_SCALE_FIT);
 
-    // 5. Φόρτωση γραμματοσειράς (Assets)
-    // Προσοχή: Το αρχείο πρέπει να υπάρχει στο φάκελο assets/
-    graphics::setFont("assets/orange.ttf");
-
     // 6. Εκκίνηση του main loop της εφαρμογής
     graphics::startMessageLoop();
 
