@@ -67,6 +67,7 @@ void GlobalState::reset()
     }
     m_entities.clear();
     m_food.clear();
+    m_player = nullptr;
     init();
 }
 static float clampf(float v, float lo, float hi)
@@ -256,9 +257,15 @@ void GlobalState::update(float dt)
     // -----------------------------
     m_entities.erase(
         std::remove_if(m_entities.begin(), m_entities.end(),
-            [](Organism* e) {
+            [this](Organism* e) {
                 if (!e) return true;
-                if (!e->isAlive()) { delete e; return true; }
+                if (!e->isAlive()) {
+                    if (e == m_player) {
+                        m_player = nullptr;
+                    }
+                    delete e;
+                    return true;
+                }
                 return false;
             }),
         m_entities.end()

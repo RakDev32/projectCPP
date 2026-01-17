@@ -27,6 +27,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
         }
     }
     addEdge(1, (int)m_nodes.size() - 1);
+    setPosition(m_x, m_y);
 
     float mass = std::max(getMass(), 1.0f);
     m_speed = std::min(45.0f, 70.0f / std::sqrt(mass));

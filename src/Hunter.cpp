@@ -27,6 +27,7 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
         }
     }
     addEdge(1, (int)m_nodes.size() - 1);
+    setPosition(m_x, m_y);
 
     m_maxSpeed = 90.0f;
     m_accel = 240.0f;
