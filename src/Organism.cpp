@@ -41,10 +41,10 @@ void Organism::drawEdges(float camX, float camY) const
     graphics::Brush br;
     br.outline_opacity = 1.0f;
     br.fill_opacity = 0.0f;
-    br.outline_color[0] = 0.7f;
-    br.outline_color[1] = 0.7f;
-    br.outline_color[2] = 0.7f;
-    br.outline_opacity = 0.35f;
+    br.outline_color[0] = 0.4f;
+    br.outline_color[1] = 0.4f;
+    br.outline_color[2] = 0.4f;
+    br.outline_opacity = 0.25f;
 
     for (const auto& edge : m_edges) {
         int a = edge.first;

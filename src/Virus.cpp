@@ -26,7 +26,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
     setPosition(m_x, m_y);
 
     float mass = std::max(getMass(), 1.0f);
-    m_speed = std::min(45.0f, 70.0f / std::sqrt(mass));
+    m_speed = std::min(80.0f, 110.0f / std::sqrt(mass));
     m_wanderTimer = 0.0f;
 }
 
@@ -37,7 +37,7 @@ void Virus::update(float dt)
         float angle = (float)rand() / (float)RAND_MAX * 6.2831853f;
         m_dirX = std::cos(angle);
         m_dirY = std::sin(angle);
-        m_wanderTimer = 1.2f + (float)rand() / (float)RAND_MAX * 1.8f;
+        m_wanderTimer = 0.6f + (float)rand() / (float)RAND_MAX * 1.2f;
     }
 
     m_vx = m_dirX * m_speed;
