@@ -26,6 +26,8 @@ int main() {
     graphics::setCanvasSize(1000, 600);
     graphics::setCanvasScaleMode(graphics::CANVAS_SCALE_FIT);
 
+    // 5. Χρήση default γραμματοσειράς (δεν υπάρχει assets/font)
+
     // 6. Εκκίνηση του main loop της εφαρμογής
     graphics::startMessageLoop();
 
