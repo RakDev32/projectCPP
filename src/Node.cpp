@@ -9,6 +9,13 @@ Node::Node(float x, float y, float r) : x(x), y(y), radius(r)
     color[2] = 0.2f;
 }
 
+void Node::setColor(float r, float g, float b)
+{
+    color[0] = r;
+    color[1] = g;
+    color[2] = b;
+}
+
 void Node::draw(float camX, float camY) const
 {
     graphics::Brush br;

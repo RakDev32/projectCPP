@@ -8,11 +8,20 @@
 
 Hunter::Hunter(float x, float y) : Organism(x, y)
 {
-    addNode(new Node(x, y, 26.0f), 0.0f, 0.0f);
-    addNode(new Node(x, y, 11.0f), 12.0f, 4.0f);
-    addNode(new Node(x, y, 9.0f), -10.0f, -6.0f);
-    m_maxSpeed = 140.0f;
-    m_accel = 320.0f;
+    auto* core = new Node(x, y, 24.0f);
+    core->setColor(0.2f, 0.7f, 1.0f);
+    addNode(core, 0.0f, 0.0f);
+
+    auto* petalA = new Node(x, y, 10.0f);
+    petalA->setColor(0.1f, 0.45f, 0.9f);
+    addNode(petalA, 10.0f, 5.0f);
+
+    auto* petalB = new Node(x, y, 8.0f);
+    petalB->setColor(0.05f, 0.3f, 0.7f);
+    addNode(petalB, -8.0f, -6.0f);
+
+    m_maxSpeed = 90.0f;
+    m_accel = 240.0f;
 }
 
 void Hunter::update(float dt)
@@ -33,18 +42,14 @@ void Hunter::update(float dt)
         float dirY = dy / dist;
 
         float mass = std::max(getMass(), 1.0f);
-        float speedScale = 140.0f / std::sqrt(mass);
-        float maxSpeed = m_maxSpeed * speedScale;
+        float speedScale = 120.0f / std::sqrt(mass);
+        float maxSpeed = std::min(m_maxSpeed * speedScale, 140.0f);
 
-        m_vx += dirX * m_accel * dt;
-        m_vy += dirY * m_accel * dt;
-
-        float speed = std::sqrt(m_vx * m_vx + m_vy * m_vy);
-        if (speed > maxSpeed) {
-            float s = maxSpeed / speed;
-            m_vx *= s;
-            m_vy *= s;
-        }
+        float targetVx = dirX * maxSpeed;
+        float targetVy = dirY * maxSpeed;
+        float steer = 8.0f;
+        m_vx += (targetVx - m_vx) * steer * dt;
+        m_vy += (targetVy - m_vy) * steer * dt;
     } else {
         m_vx *= 0.9f;
         m_vy *= 0.9f;
@@ -59,7 +64,7 @@ void Hunter::draw(float camX, float camY) const
 {
     graphics::Brush br;
     br.outline_opacity = 1.0f;
-    br.fill_opacity = 0.6f;
+    br.fill_opacity = 0.7f;
 
     // γραμμές μεταξύ nodes (αν έχεις πολλά)
     if (m_nodes.size() > 1) {
@@ -73,7 +78,16 @@ void Hunter::draw(float camX, float camY) const
     }
 
     // draw nodes
+    graphics::Brush inner;
+    inner.fill_color[0] = 1.0f;
+    inner.fill_color[1] = 1.0f;
+    inner.fill_color[2] = 1.0f;
+    inner.fill_opacity = 0.5f;
+    inner.outline_opacity = 0.0f;
+
     for (auto* node : m_nodes) {
-        if (node) node->draw(camX, camY);
+        if (!node) continue;
+        node->draw(camX, camY);
+        graphics::drawDisk(node->getX() - camX, node->getY() - camY, node->getRadius() * 0.35f, inner);
     }
 }

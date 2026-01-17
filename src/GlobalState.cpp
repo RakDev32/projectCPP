@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <ctime>
 
 // 1. Αρχικοποίηση του static δείκτη (ΥΠΟΧΡΕΩΤΙΚΟ)
 GlobalState* GlobalState::m_instance = nullptr;
@@ -17,6 +18,11 @@ GlobalState* GlobalState::getInstance() {
     return m_instance;
 }
 
+static float randRange(float lo, float hi)
+{
+    return lo + (hi - lo) * ((float)rand() / (float)RAND_MAX);
+}
+
 // 3. Υλοποίηση του Destructor
 GlobalState::~GlobalState() {
     for (auto* entity : m_entities) {
@@ -27,6 +33,11 @@ GlobalState::~GlobalState() {
 
 void GlobalState::init() {
     // ΜΟΝΟ ΔΗΜΙΟΥΡΓΙΑ ANTIKEIMENΩΝ ΕΔΩ
+    static bool seeded = false;
+    if (!seeded) {
+        std::srand((unsigned int)std::time(nullptr));
+        seeded = true;
+    }
     m_entities.clear();
     m_food.clear();
     m_score = 0;
@@ -38,11 +49,14 @@ void GlobalState::init() {
 
     // δημιούργησε NPCs
     for (int i = 0; i < 15; ++i) {
-        m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
+        m_entities.push_back(new Virus(randRange(0.0f, m_worldW), randRange(0.0f, m_worldH)));
     }
 
-    for (int i = 0; i < 30; i++) {
-        m_food.push_back(new Node(rand() % 1000, rand() % 600, 8.0f));
+    // δημιούργησε food
+    for (int i = 0; i < 80; ++i) {
+        m_food.push_back(new Node(randRange(0.0f, m_worldW),
+            randRange(0.0f, m_worldH),
+            6.0f));
     }
 }
 
@@ -199,8 +213,8 @@ void GlobalState::update(float dt)
                 if (entity == m_player) {
                     addScore(1);
                 }
-                f->setX((float)(rand() % (int)m_worldW));
-                f->setY((float)(rand() % (int)m_worldH));
+                f->setX(randRange(0.0f, m_worldW));
+                f->setY(randRange(0.0f, m_worldH));
             }
         }
     }
@@ -239,7 +253,7 @@ void GlobalState::update(float dt)
         }
     }
     while (npcCount < m_minNpcCount) {
-        m_entities.push_back(new Virus((float)(rand() % (int)m_worldW), (float)(rand() % (int)m_worldH)));
+        m_entities.push_back(new Virus(randRange(0.0f, m_worldW), randRange(0.0f, m_worldH)));
         ++npcCount;
     }
 }

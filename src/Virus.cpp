@@ -7,20 +7,28 @@
 
 Virus::Virus(float x, float y) : Organism(x, y)
 {
-    float baseRadius = 12.0f + (float)(rand() % 16);
+    float baseRadius = 10.0f + (float)(rand() % 26);
     float r1 = baseRadius;
     float r2 = baseRadius * 0.45f;
     float r3 = baseRadius * 0.35f;
 
-    float offsetX = baseRadius * 0.5f;
-    float offsetY = baseRadius * 0.35f;
+    float offsetX = baseRadius * 0.45f;
+    float offsetY = baseRadius * 0.3f;
 
-    addNode(new Node(x, y, r1), 0.0f, 0.0f);
-    addNode(new Node(x, y, r2), -offsetX, offsetY);
-    addNode(new Node(x, y, r3), offsetX * 0.7f, -offsetY * 0.8f);
+    auto* core = new Node(x, y, r1);
+    core->setColor(0.9f, 0.3f, 0.3f);
+    addNode(core, 0.0f, 0.0f);
+
+    auto* petalA = new Node(x, y, r2);
+    petalA->setColor(0.7f, 0.15f, 0.2f);
+    addNode(petalA, -offsetX, offsetY);
+
+    auto* petalB = new Node(x, y, r3);
+    petalB->setColor(0.6f, 0.1f, 0.15f);
+    addNode(petalB, offsetX * 0.7f, -offsetY * 0.8f);
 
     float mass = std::max(getMass(), 1.0f);
-    m_speed = 110.0f / std::sqrt(mass);
+    m_speed = std::min(95.0f, 130.0f / std::sqrt(mass));
     m_wanderTimer = 0.0f;
 }
 
@@ -44,7 +52,16 @@ void Virus::update(float dt)
 
 void Virus::draw(float camX, float camY) const
 {
+    graphics::Brush inner;
+    inner.fill_color[0] = 1.0f;
+    inner.fill_color[1] = 0.9f;
+    inner.fill_color[2] = 0.9f;
+    inner.fill_opacity = 0.4f;
+    inner.outline_opacity = 0.0f;
+
     for (auto* node : m_nodes) {
-        if (node) node->draw(camX, camY);
+        if (!node) continue;
+        node->draw(camX, camY);
+        graphics::drawDisk(node->getX() - camX, node->getY() - camY, node->getRadius() * 0.3f, inner);
     }
 }
