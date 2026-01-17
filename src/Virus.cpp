@@ -13,7 +13,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
     addNode(core, 0.0f, 0.0f);
 
     const int ringCount = 5;
-    float ringRadius = baseRadius * 0.9f;
+    float ringRadius = baseRadius * 0.7f;
     for (int i = 0; i < ringCount; ++i) {
         float angle = (6.2831853f / ringCount) * i;
         float ox = std::cos(angle) * ringRadius;
@@ -22,11 +22,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
         node->setColor(0.7f, 0.15f, 0.2f);
         addNode(node, ox, oy);
         addEdge(0, (int)m_nodes.size() - 1);
-        if (i > 0) {
-            addEdge((int)m_nodes.size() - 2, (int)m_nodes.size() - 1);
-        }
     }
-    addEdge(1, (int)m_nodes.size() - 1);
     setPosition(m_x, m_y);
 
     float mass = std::max(getMass(), 1.0f);

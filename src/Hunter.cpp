@@ -13,7 +13,7 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
     addNode(core, 0.0f, 0.0f);
 
     const int ringCount = 6;
-    const float ringRadius = 18.0f;
+    const float ringRadius = 12.0f;
     for (int i = 0; i < ringCount; ++i) {
         float angle = (6.2831853f / ringCount) * i;
         float ox = std::cos(angle) * ringRadius;
@@ -22,11 +22,7 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
         node->setColor(0.1f, 0.45f, 0.9f);
         addNode(node, ox, oy);
         addEdge(0, (int)m_nodes.size() - 1);
-        if (i > 0) {
-            addEdge((int)m_nodes.size() - 2, (int)m_nodes.size() - 1);
-        }
     }
-    addEdge(1, (int)m_nodes.size() - 1);
     setPosition(m_x, m_y);
 
     m_maxSpeed = 90.0f;
