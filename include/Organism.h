@@ -8,6 +8,7 @@ protected:
     std::vector<Node*> m_nodes;
     std::vector<std::pair<int, int>> m_edges;
     size_t m_coreIndex = 0;
+    float m_outerRadius = 0.0f;
 
     float m_x = 0.0f;
     float m_y = 0.0f;

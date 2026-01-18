@@ -18,7 +18,8 @@ Virus::Virus(float x, float y) : Organism(x, y)
         float angle = (6.2831853f / ringCount) * i;
         float ox = std::cos(angle) * ringRadius;
         float oy = std::sin(angle) * ringRadius;
-        auto* node = new Node(x + ox, y + oy, baseRadius * 0.4f);
+        float scale = 0.35f + ((float)rand() / (float)RAND_MAX) * 0.20f;
+        auto* node = new Node(x + ox, y + oy, baseRadius * scale);
         node->setColor(0.7f, 0.15f, 0.2f);
         addNode(node);
         addEdge(0, (int)m_nodes.size() - 1);

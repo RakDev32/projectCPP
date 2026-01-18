@@ -32,8 +32,12 @@ GlobalState::~GlobalState() {
     for (auto* pellet : m_pellets) {
         delete pellet;
     }
+    for (auto* food : m_food) {
+        delete food;
+    }
     m_entities.clear();
     m_pellets.clear();
+    m_food.clear();
 }
 
 void GlobalState::init() {
@@ -44,6 +48,9 @@ void GlobalState::init() {
         seeded = true;
     }
     m_entities.clear();
+    for (auto* food : m_food) {
+        delete food;
+    }
     m_food.clear();
     m_pellets.clear();
     m_score = 0;
@@ -74,6 +81,9 @@ void GlobalState::reset()
     }
     for (auto* pellet : m_pellets) {
         delete pellet;
+    }
+    for (auto* food : m_food) {
+        delete food;
     }
     m_entities.clear();
     m_food.clear();
@@ -218,9 +228,6 @@ void GlobalState::update(float dt)
                             B->kill();
                         }
                     }
-                    if (A == m_player) {
-                        addScore(10);
-                    }
                     if (B == m_player) {
                         m_gameOver = true;
                     }
@@ -233,9 +240,6 @@ void GlobalState::update(float dt)
                         if (A->getNodeCount() == 0) {
                             A->kill();
                         }
-                    }
-                    if (B == m_player) {
-                        addScore(10);
                     }
                     if (A == m_player) {
                         m_gameOver = true;
@@ -260,9 +264,6 @@ void GlobalState::update(float dt)
             int hitIndex = entity->findCollidingNode(f);
             if (hitIndex >= 0) {
                 entity->addNodeNear((size_t)hitIndex, 5.0f);
-                if (entity == m_player) {
-                    addScore(1);
-                }
                 f->setX(randRange(0.0f, m_worldW));
                 f->setY(randRange(0.0f, m_worldH));
             }
@@ -291,6 +292,20 @@ void GlobalState::update(float dt)
             }),
         m_pellets.end()
     );
+
+    for (auto* entity : m_entities) {
+        if (entity && entity->getNodeCount() == 0) {
+            entity->kill();
+        }
+    }
+
+    if (m_player) {
+        m_score = (int)m_player->getNodeCount();
+        m_highScore = std::max(m_highScore, m_score);
+        if (m_player->getNodeCount() == 0) {
+            m_gameOver = true;
+        }
+    }
 
     // -----------------------------
     // 5) Camera follows player
@@ -355,12 +370,8 @@ void GlobalState::draw() {
     br.fill_color[1] = 1.0f;
     br.fill_color[2] = 1.0f;
     br.fill_opacity = 1.0f;
-    graphics::drawText(14, 24, 20, "Score: " + std::to_string(m_score), br);
-    graphics::drawText(14, 48, 18, "Food: " + std::to_string(m_food.size()), br);
-    if (m_player) {
-        int mass = (int)m_player->getNodeCount();
-        graphics::drawText(14, 70, 18, "Mass: " + std::to_string(mass), br);
-    }
+    graphics::drawText(14, 24, 20, "Nodes: " + std::to_string(m_score), br);
+    graphics::drawText(14, 48, 18, "High: " + std::to_string(m_highScore), br);
     if (m_gameOver) {
         graphics::Brush overlay;
         overlay.fill_color[0] = 0.0f;

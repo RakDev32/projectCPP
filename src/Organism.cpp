@@ -141,9 +141,7 @@ float Organism::getRadius() const
 
 float Organism::getVisualRadius() const
 {
-    const float base = 18.0f;
-    const float k = 6.0f;
-    return base + k * std::sqrt((float)m_nodes.size());
+    return m_outerRadius;
 }
 
 float Organism::getMass() const
@@ -165,6 +163,7 @@ void Organism::growByArea(float eatenRadius)
     float newR = std::sqrt(r * r + eatenRadius * eatenRadius);
     float scale = newR / r;
     for (size_t i = 0; i < m_nodes.size(); ++i) {
+        if (i == m_coreIndex) continue;
         if (m_nodes[i]) {
             m_nodes[i]->setRadius(m_nodes[i]->getRadius() * scale);
         }
@@ -174,6 +173,7 @@ void Organism::growByArea(float eatenRadius)
 void Organism::growNodeByArea(size_t nodeIndex, float eatenRadius)
 {
     if (nodeIndex >= m_nodes.size()) return;
+    if (nodeIndex == m_coreIndex) return;
     Node* node = m_nodes[nodeIndex];
     if (!node) return;
     float r = node->getRadius();
@@ -211,6 +211,7 @@ void Organism::recomputeLayout()
     int ringIndex = 1;
     const float ringGap = 12.0f;
     float baseRadius = m_nodes[0]->getRadius() + 4.0f;
+    m_outerRadius = m_nodes[0]->getRadius();
 
     while (nodeIndex < m_nodes.size()) {
         int capacity = 8 + (ringIndex - 1) * 4;
@@ -225,6 +226,8 @@ void Organism::recomputeLayout()
                 node->setSlotIndex(slot);
                 node->setX(m_x + ox);
                 node->setY(m_y + oy);
+                float dist = std::sqrt(ox * ox + oy * oy) + node->getRadius();
+                m_outerRadius = std::max(m_outerRadius, dist);
             }
             ++nodeIndex;
         }

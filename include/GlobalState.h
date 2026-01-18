@@ -15,6 +15,7 @@ private:
     float m_canvas_width = 1000.0f;
     float m_canvas_height = 600.0f;
     int m_score = 0;
+    int m_highScore = 0;
     float m_worldW = 4000.0f;
     float m_worldH = 4000.0f;
 
@@ -55,7 +56,7 @@ public:
     float getCanvasWidth() const { return m_canvas_width; }
     float getCanvasHeight() const { return m_canvas_height; }
     int getScore() const { return m_score; }
-    void addScore(int s) { m_score += s; }
+    int getHighScore() const { return m_highScore; }
 
 
 
