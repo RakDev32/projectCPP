@@ -135,6 +135,7 @@ void GlobalState::update(float dt)
     for (auto* e : m_entities) {
         if (e && e->isAlive()) {
             e->update(dt);
+            e->updateInfection(dt);
         }
     }
 
@@ -191,7 +192,10 @@ void GlobalState::update(float dt)
                 float overlap = (rA + rB) - dist;
                 // overlap -> eat if size advantage
                 if (mA > mB * EAT_MARGIN) {
-                    A->growNodeByArea((size_t)std::max(aNode, 0), rB);
+                    size_t gain = std::max<size_t>(1, (size_t)(B->getNodeCount() * 0.5f));
+                    for (size_t g = 0; g < gain; ++g) {
+                        A->addNodeNear((size_t)std::max(aNode, 0), 5.0f);
+                    }
                     if (A == m_player) {
                         addScore(10);
                     }
@@ -201,7 +205,10 @@ void GlobalState::update(float dt)
                     B->kill();
                 }
                 else if (mB > mA * EAT_MARGIN) {
-                    B->growNodeByArea((size_t)std::max(bNode, 0), rA);
+                    size_t gain = std::max<size_t>(1, (size_t)(A->getNodeCount() * 0.5f));
+                    for (size_t g = 0; g < gain; ++g) {
+                        B->addNodeNear((size_t)std::max(bNode, 0), 5.0f);
+                    }
                     if (B == m_player) {
                         addScore(10);
                     }
@@ -212,6 +219,11 @@ void GlobalState::update(float dt)
                 }
                 else {
                     separateEntities(A, B, dx, dy, dist, overlap);
+                    if (dynamic_cast<Virus*>(A) && dynamic_cast<Hunter*>(B) && bNode >= 0) {
+                        B->infectNode((size_t)bNode);
+                    } else if (dynamic_cast<Virus*>(B) && dynamic_cast<Hunter*>(A) && aNode >= 0) {
+                        A->infectNode((size_t)aNode);
+                    }
                 }
             }
         }
@@ -228,7 +240,7 @@ void GlobalState::update(float dt)
 
             int hitIndex = entity->findCollidingNode(f);
             if (hitIndex >= 0) {
-                entity->growNodeByArea((size_t)hitIndex, f->getRadius());
+                entity->addNodeNear((size_t)hitIndex, 5.0f);
                 if (entity == m_player) {
                     addScore(1);
                 }

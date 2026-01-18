@@ -63,6 +63,7 @@ void Hunter::update(float dt)
     m_x += m_vx * dt;
     m_y += m_vy * dt;
     setPosition(m_x, m_y);
+    applyGraphForces(dt);
 }
 
 void Hunter::draw(float camX, float camY) const

@@ -2,6 +2,7 @@
 #include "graphics.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 
 Organism::Organism(float x, float y)
     : m_x(x), m_y(y), m_vx(0.0f), m_vy(0.0f)
@@ -26,6 +27,7 @@ void Organism::addNode(Node* n, float offsetX, float offsetY)
     if (n) {
         m_nodes.push_back(n);
         m_nodeOffsets.emplace_back(offsetX, offsetY);
+        m_nodeVelocities.emplace_back(0.0f, 0.0f);
     }
 }
 
@@ -130,14 +132,7 @@ float Organism::getRadius() const
 
 float Organism::getMass() const
 {
-    float mass = 0.0f;
-    for (auto* node : m_nodes) {
-        if (node) {
-            float r = node->getRadius();
-            mass += r * r;
-        }
-    }
-    return mass;
+    return static_cast<float>(m_nodes.size());
 }
 
 void Organism::setRadius(float r)
@@ -178,5 +173,107 @@ void Organism::growNodeByArea(size_t nodeIndex, float eatenRadius)
             offset.second *= scale;
         }
         setPosition(m_x, m_y);
+    }
+}
+
+void Organism::addNodeNear(size_t baseIndex, float radius)
+{
+    if (m_nodes.empty()) return;
+    if (baseIndex >= m_nodes.size()) baseIndex = 0;
+
+    float angle = ((float)rand() / (float)RAND_MAX) * 6.2831853f;
+    float dist = m_nodes[baseIndex] ? m_nodes[baseIndex]->getRadius() + radius + 6.0f : radius + 6.0f;
+    float ox = std::cos(angle) * dist;
+    float oy = std::sin(angle) * dist;
+
+    auto* node = new Node(m_x, m_y, radius);
+    node->setColor(0.1f, 0.6f, 0.9f);
+    addNode(node, m_nodeOffsets[baseIndex].first + ox, m_nodeOffsets[baseIndex].second + oy);
+    addEdge((int)baseIndex, (int)m_nodes.size() - 1);
+
+    int nearest = -1;
+    float nearestDist = 1e9f;
+    for (size_t i = 0; i + 1 < m_nodeOffsets.size(); ++i) {
+        float dx = m_nodeOffsets[i].first - m_nodeOffsets.back().first;
+        float dy = m_nodeOffsets[i].second - m_nodeOffsets.back().second;
+        float d2 = dx * dx + dy * dy;
+        if (d2 < nearestDist && i != baseIndex) {
+            nearestDist = d2;
+            nearest = (int)i;
+        }
+    }
+    if (nearest >= 0) {
+        addEdge(nearest, (int)m_nodes.size() - 1);
+    }
+    setPosition(m_x, m_y);
+}
+
+void Organism::updateInfection(float dt)
+{
+    if (m_nodes.empty()) return;
+    for (size_t i = 0; i < m_nodes.size(); ++i) {
+        Node* node = m_nodes[i];
+        if (!node || !node->isInfected()) continue;
+        node->addInfectionTime(dt);
+        float r = node->getRadius();
+        node->setRadius(std::max(2.0f, r - dt * 0.6f));
+        if (node->getInfectionTime() > 1.0f) {
+            for (const auto& edge : m_edges) {
+                int a = edge.first;
+                int b = edge.second;
+                int neighbor = -1;
+                if (a == (int)i) neighbor = b;
+                if (b == (int)i) neighbor = a;
+                if (neighbor >= 0 && neighbor < (int)m_nodes.size()) {
+                    if (m_nodes[neighbor] && !m_nodes[neighbor]->isInfected()) {
+                        m_nodes[neighbor]->setInfected(true);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Organism::applyGraphForces(float dt)
+{
+    if (m_nodes.size() < 2) return;
+    const float k = 2.5f;
+    const float damping = 0.9f;
+    for (const auto& edge : m_edges) {
+        int a = edge.first;
+        int b = edge.second;
+        if (a <= 0 || b <= 0) continue;
+        if (a >= (int)m_nodeOffsets.size() || b >= (int)m_nodeOffsets.size()) continue;
+        float ax = m_nodeOffsets[a].first;
+        float ay = m_nodeOffsets[a].second;
+        float bx = m_nodeOffsets[b].first;
+        float by = m_nodeOffsets[b].second;
+        float dx = bx - ax;
+        float dy = by - ay;
+        float dist = std::sqrt(dx * dx + dy * dy);
+        if (dist < 0.001f) continue;
+        float rest = 12.0f;
+        float force = k * (dist - rest);
+        float fx = (dx / dist) * force;
+        float fy = (dy / dist) * force;
+        m_nodeVelocities[a].first += fx * dt;
+        m_nodeVelocities[a].second += fy * dt;
+        m_nodeVelocities[b].first -= fx * dt;
+        m_nodeVelocities[b].second -= fy * dt;
+    }
+    for (size_t i = 1; i < m_nodeOffsets.size(); ++i) {
+        m_nodeVelocities[i].first *= damping;
+        m_nodeVelocities[i].second *= damping;
+        m_nodeOffsets[i].first += m_nodeVelocities[i].first;
+        m_nodeOffsets[i].second += m_nodeVelocities[i].second;
+    }
+    setPosition(m_x, m_y);
+}
+
+void Organism::infectNode(size_t nodeIndex)
+{
+    if (nodeIndex >= m_nodes.size()) return;
+    if (m_nodes[nodeIndex]) {
+        m_nodes[nodeIndex]->setInfected(true);
     }
 }

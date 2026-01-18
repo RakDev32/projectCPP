@@ -8,6 +8,7 @@ protected:
     std::vector<Node*> m_nodes;
     std::vector<std::pair<float, float>> m_nodeOffsets;
     std::vector<std::pair<int, int>> m_edges;
+    std::vector<std::pair<float, float>> m_nodeVelocities;
 
     float m_x = 0.0f;
     float m_y = 0.0f;
@@ -36,9 +37,11 @@ public:
     
     float getRadius() const;
     float getMass() const;
+    size_t getNodeCount() const { return m_nodes.size(); }
     void setRadius(float r);
     void growByArea(float eatenRadius);
     void growNodeByArea(size_t nodeIndex, float eatenRadius);
+    void addNodeNear(size_t baseIndex, float radius);
     // nodes
     void addNode(Node* n);
     void addNode(Node* n, float offsetX, float offsetY);
@@ -49,6 +52,9 @@ public:
     bool checkCollisionWithNode(const Node* target) const;
     int findCollidingNode(const Node* target) const;
     bool checkCollisionWithOrganism(const Organism& other, int* outMyIndex, int* outOtherIndex) const;
+    void updateInfection(float dt);
+    void applyGraphForces(float dt);
+    void infectNode(size_t nodeIndex);
 
     // polymorphic API
     virtual void update(float dt) = 0;
