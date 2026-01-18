@@ -60,10 +60,23 @@ void GlobalState::init() {
     // δημιούργησε player
     m_player = new Hunter(m_worldW * 0.5f, m_worldH * 0.5f);
     m_entities.push_back(m_player);
+    int playerExtra = 4 + (rand() % 7);
+    for (int i = 0; i < playerExtra; ++i) {
+        m_player->addNodeNear(0, 5.0f);
+    }
+    m_player->recomputeLayout();
+    m_player->rebuildTopology();
 
     // δημιούργησε NPCs
     for (int i = 0; i < 15; ++i) {
-        m_entities.push_back(new Virus(randRange(0.0f, m_worldW), randRange(0.0f, m_worldH)));
+        auto* npc = new Virus(randRange(0.0f, m_worldW), randRange(0.0f, m_worldH));
+        int npcExtra = 2 + (rand() % 10);
+        for (int n = 0; n < npcExtra; ++n) {
+            npc->addNodeNear(0, 5.0f);
+        }
+        npc->recomputeLayout();
+        npc->rebuildTopology();
+        m_entities.push_back(npc);
     }
 
     // δημιούργησε food

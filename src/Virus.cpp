@@ -58,6 +58,15 @@ void Virus::draw(float camX, float camY) const
 {
     drawGlow(camX, camY);
     drawEdges(camX, camY);
+
+    graphics::Brush outline;
+    outline.fill_opacity = 0.0f;
+    outline.outline_opacity = 1.0f;
+    outline.outline_color[0] = 1.0f;
+    outline.outline_color[1] = 0.2f;
+    outline.outline_color[2] = 0.2f;
+    graphics::drawDisk(m_x - camX, m_y - camY, getVisualRadius(), outline);
+
     for (auto* node : m_nodes) {
         if (!node) continue;
         node->draw(camX, camY);
