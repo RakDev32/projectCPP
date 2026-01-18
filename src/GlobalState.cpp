@@ -306,15 +306,15 @@ void GlobalState::draw() {
 
     // 3) Draw HUD
     graphics::Brush br;
-    br.fill_color[0] = 0.9f;
-    br.fill_color[1] = 0.1f;
-    br.fill_color[2] = 0.1f;
+    br.fill_color[0] = 1.0f;
+    br.fill_color[1] = 1.0f;
+    br.fill_color[2] = 1.0f;
     br.fill_opacity = 1.0f;
-    graphics::drawText(10, 24, 20, "Score: " + std::to_string(m_score), br);
-    graphics::drawText(10, 48, 18, "Food: " + std::to_string(m_food.size()), br);
+    graphics::drawText(14, 24, 20, "Score: " + std::to_string(m_score), br);
+    graphics::drawText(14, 48, 18, "Food: " + std::to_string(m_food.size()), br);
     if (m_player) {
-        int mass = (int)m_player->getMass();
-        graphics::drawText(10, 70, 18, "Mass: " + std::to_string(mass), br);
+        int mass = (int)m_player->getNodeCount();
+        graphics::drawText(14, 70, 18, "Mass: " + std::to_string(mass), br);
     }
     if (m_gameOver) {
         graphics::Brush overlay;

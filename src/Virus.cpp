@@ -51,6 +51,7 @@ void Virus::update(float dt)
 
 void Virus::draw(float camX, float camY) const
 {
+    drawGlow(camX, camY);
     drawEdges(camX, camY);
     for (auto* node : m_nodes) {
         if (!node) continue;

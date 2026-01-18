@@ -47,6 +47,7 @@ public:
     void addNode(Node* n, float offsetX, float offsetY);
     void addEdge(int fromIndex, int toIndex);
     void drawEdges(float camX, float camY) const;
+    void drawGlow(float camX, float camY) const;
 
     // collisions
     bool checkCollisionWithNode(const Node* target) const;

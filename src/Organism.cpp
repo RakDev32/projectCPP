@@ -64,6 +64,28 @@ void Organism::drawEdges(float camX, float camY) const
     }
 }
 
+void Organism::drawGlow(float camX, float camY) const
+{
+    for (auto* node : m_nodes) {
+        if (!node) continue;
+        drawGlowDisk(node->getX(), node->getY(), node->getRadius(), camX, camY, 0.2f, 0.6f, 1.0f);
+    }
+}
+
+static void drawGlowDisk(float x, float y, float radius, float camX, float camY, float r, float g, float b)
+{
+    graphics::Brush glow;
+    glow.fill_color[0] = r;
+    glow.fill_color[1] = g;
+    glow.fill_color[2] = b;
+    glow.outline_opacity = 0.0f;
+
+    glow.fill_opacity = 0.18f;
+    graphics::drawDisk(x - camX, y - camY, radius * 1.25f, glow);
+    glow.fill_opacity = 0.35f;
+    graphics::drawDisk(x - camX, y - camY, radius * 1.05f, glow);
+}
+
 void Organism::setPosition(float x, float y)
 {
     m_x = x;
@@ -182,22 +204,23 @@ void Organism::addNodeNear(size_t baseIndex, float radius)
     if (baseIndex >= m_nodes.size()) baseIndex = 0;
 
     float angle = ((float)rand() / (float)RAND_MAX) * 6.2831853f;
-    float dist = m_nodes[baseIndex] ? m_nodes[baseIndex]->getRadius() + radius + 6.0f : radius + 6.0f;
+    float shell = std::max(10.0f, std::sqrt((float)m_nodes.size()) * 6.0f);
+    float dist = shell + radius * 0.6f;
     float ox = std::cos(angle) * dist;
     float oy = std::sin(angle) * dist;
 
     auto* node = new Node(m_x, m_y, radius);
-    node->setColor(0.1f, 0.6f, 0.9f);
-    addNode(node, m_nodeOffsets[baseIndex].first + ox, m_nodeOffsets[baseIndex].second + oy);
-    addEdge((int)baseIndex, (int)m_nodes.size() - 1);
+    node->setColor(0.15f, 0.55f, 0.95f);
+    addNode(node, ox, oy);
+    addEdge(0, (int)m_nodes.size() - 1);
 
     int nearest = -1;
     float nearestDist = 1e9f;
-    for (size_t i = 0; i + 1 < m_nodeOffsets.size(); ++i) {
+    for (size_t i = 1; i + 1 < m_nodeOffsets.size(); ++i) {
         float dx = m_nodeOffsets[i].first - m_nodeOffsets.back().first;
         float dy = m_nodeOffsets[i].second - m_nodeOffsets.back().second;
         float d2 = dx * dx + dy * dy;
-        if (d2 < nearestDist && i != baseIndex) {
+        if (d2 < nearestDist) {
             nearestDist = d2;
             nearest = (int)i;
         }
