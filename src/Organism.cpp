@@ -21,7 +21,6 @@ void Organism::addNode(Node* n)
 {
     if (n) {
         m_nodes.push_back(n);
-        m_nodeVelocities.emplace_back(0.0f, 0.0f);
     }
 }
 
@@ -137,14 +136,14 @@ bool Organism::checkCollisionWithOrganism(const Organism& other, int* outMyIndex
 }
 float Organism::getRadius() const
 {
-    if (m_nodes.empty()) return 0.0f;
-    float maxR = 0.0f;
-    for (auto* node : m_nodes) {
-        if (node) {
-            maxR = std::max(maxR, node->getRadius());
-        }
-    }
-    return maxR;
+    return getVisualRadius();
+}
+
+float Organism::getVisualRadius() const
+{
+    const float base = 18.0f;
+    const float k = 6.0f;
+    return base + k * std::sqrt((float)m_nodes.size());
 }
 
 float Organism::getMass() const
@@ -188,105 +187,129 @@ void Organism::addNodeNear(size_t baseIndex, float radius)
     if (baseIndex >= m_nodes.size()) baseIndex = 0;
 
     float angle = ((float)rand() / (float)RAND_MAX) * 6.2831853f;
-    float shell = std::max(10.0f, std::sqrt((float)m_nodes.size()) * 6.0f);
-    float dist = shell + radius * 0.6f;
+    float shell = getVisualRadius();
+    float dist = shell * 0.65f;
     float ox = std::cos(angle) * dist;
     float oy = std::sin(angle) * dist;
 
-    Node* baseNode = m_nodes[baseIndex];
-    float bx = baseNode ? baseNode->getX() : m_x;
-    float by = baseNode ? baseNode->getY() : m_y;
-
-    auto* node = new Node(bx + ox, by + oy, radius);
+    auto* node = new Node(m_x + ox, m_y + oy, radius);
     node->setColor(0.15f, 0.55f, 0.95f);
     addNode(node);
-    addEdge(0, (int)m_nodes.size() - 1);
+    recomputeLayout();
+    rebuildTopology();
+}
 
-    int nearest = -1;
-    float nearestDist = 1e9f;
-    for (size_t i = 1; i + 1 < m_nodes.size(); ++i) {
-        float dx = m_nodes[i]->getX() - m_nodes.back()->getX();
-        float dy = m_nodes[i]->getY() - m_nodes.back()->getY();
-        float d2 = dx * dx + dy * dy;
-        if (d2 < nearestDist) {
-            nearestDist = d2;
-            nearest = (int)i;
+void Organism::recomputeLayout()
+{
+    if (m_nodes.empty()) return;
+    m_nodes[0]->setRingIndex(0);
+    m_nodes[0]->setSlotIndex(0);
+    m_nodes[0]->setX(m_x);
+    m_nodes[0]->setY(m_y);
+
+    size_t nodeIndex = 1;
+    int ringIndex = 1;
+    const float ringGap = 12.0f;
+    float baseRadius = m_nodes[0]->getRadius() + 4.0f;
+
+    while (nodeIndex < m_nodes.size()) {
+        int capacity = 8 + (ringIndex - 1) * 4;
+        float ringRadius = baseRadius + ringIndex * ringGap;
+        for (int slot = 0; slot < capacity && nodeIndex < m_nodes.size(); ++slot) {
+            float angle = (6.2831853f / capacity) * slot;
+            float ox = std::cos(angle) * ringRadius;
+            float oy = std::sin(angle) * ringRadius;
+            Node* node = m_nodes[nodeIndex];
+            if (node) {
+                node->setRingIndex(ringIndex);
+                node->setSlotIndex(slot);
+                node->setX(m_x + ox);
+                node->setY(m_y + oy);
+            }
+            ++nodeIndex;
         }
-    }
-    if (nearest >= 0) {
-        addEdge(nearest, (int)m_nodes.size() - 1);
+        ++ringIndex;
     }
 }
 
-void Organism::updateInfection(float dt)
+void Organism::rebuildTopology()
 {
-    if (m_nodes.empty()) return;
-    for (size_t i = 0; i < m_nodes.size(); ++i) {
-        Node* node = m_nodes[i];
-        if (!node || !node->isInfected()) continue;
-        node->addInfectionTime(dt);
-        float r = node->getRadius();
-        node->setRadius(std::max(2.0f, r - dt * 0.6f));
-        if (node->getInfectionTime() > 1.0f) {
-            for (const auto& edge : m_edges) {
-                int a = edge.first;
-                int b = edge.second;
-                int neighbor = -1;
-                if (a == (int)i) neighbor = b;
-                if (b == (int)i) neighbor = a;
-                if (neighbor >= 0 && neighbor < (int)m_nodes.size()) {
-                    if (m_nodes[neighbor] && !m_nodes[neighbor]->isInfected()) {
-                        m_nodes[neighbor]->setInfected(true);
-                    }
+    m_edges.clear();
+    size_t n = m_nodes.size();
+    if (n <= 1) return;
+
+    int mode = 0;
+    if (n >= 20) mode = 2; // MESH
+    else if (n >= 10) mode = 1; // RING
+
+    for (size_t i = 1; i < n; ++i) {
+        addEdge(0, (int)i);
+        if (m_nodes[i]) {
+            m_nodes[i]->setArmor(mode == 2 ? 2 : 1);
+        }
+    }
+
+    if (mode >= 1) {
+        std::vector<std::vector<int>> rings;
+        rings.resize(10);
+        for (size_t i = 1; i < n; ++i) {
+            int ring = m_nodes[i] ? m_nodes[i]->getRingIndex() : 0;
+            if (ring >= 1 && ring < (int)rings.size()) {
+                rings[ring].push_back((int)i);
+            }
+        }
+        for (auto& ring : rings) {
+            if (ring.size() < 2) continue;
+            for (size_t i = 0; i < ring.size(); ++i) {
+                int a = ring[i];
+                int b = ring[(i + 1) % ring.size()];
+                addEdge(a, b);
+            }
+            if (mode == 2 && ring.size() >= 4) {
+                size_t half = ring.size() / 2;
+                for (size_t i = 0; i < ring.size(); ++i) {
+                    addEdge(ring[i], ring[(i + half) % ring.size()]);
                 }
             }
         }
     }
 }
 
-void Organism::applyGraphForces(float dt)
+int Organism::findCollidingNodeWithPoint(float px, float py, float radius) const
 {
-    if (m_nodes.size() < 2) return;
-    const float k = 2.5f;
-    const float damping = 0.9f;
-    for (const auto& edge : m_edges) {
-        int a = edge.first;
-        int b = edge.second;
-        if (a < 0 || b < 0) continue;
-        if (a >= (int)m_nodes.size() || b >= (int)m_nodes.size()) continue;
-        float ax = m_nodes[a]->getX();
-        float ay = m_nodes[a]->getY();
-        float bx = m_nodes[b]->getX();
-        float by = m_nodes[b]->getY();
-        float dx = bx - ax;
-        float dy = by - ay;
-        float dist = std::sqrt(dx * dx + dy * dy);
-        if (dist < 0.001f) continue;
-        float rest = 12.0f;
-        float force = k * (dist - rest);
-        float fx = (dx / dist) * force;
-        float fy = (dy / dist) * force;
-        m_nodeVelocities[a].first += fx * dt;
-        m_nodeVelocities[a].second += fy * dt;
-        m_nodeVelocities[b].first -= fx * dt;
-        m_nodeVelocities[b].second -= fy * dt;
+    for (size_t i = 0; i < m_nodes.size(); ++i) {
+        Node* node = m_nodes[i];
+        if (!node) continue;
+        float dx = node->getX() - px;
+        float dy = node->getY() - py;
+        float dist2 = dx * dx + dy * dy;
+        float r = node->getRadius() + radius;
+        if (dist2 <= r * r) {
+            return (int)i;
+        }
     }
-    for (size_t i = 1; i < m_nodes.size(); ++i) {
-        m_nodeVelocities[i].first *= damping;
-        m_nodeVelocities[i].second *= damping;
-        m_nodes[i]->setX(m_nodes[i]->getX() + m_nodeVelocities[i].first);
-        m_nodes[i]->setY(m_nodes[i]->getY() + m_nodeVelocities[i].second);
-    }
-    if (!m_nodes.empty()) {
-        m_x = m_nodes[m_coreIndex]->getX();
-        m_y = m_nodes[m_coreIndex]->getY();
-    }
+    return -1;
 }
 
-void Organism::infectNode(size_t nodeIndex)
+bool Organism::applyHitToNode(size_t nodeIndex, float now, float cooldown, float& outX, float& outY)
 {
-    if (nodeIndex >= m_nodes.size()) return;
-    if (m_nodes[nodeIndex]) {
-        m_nodes[nodeIndex]->setInfected(true);
-    }
+    if (nodeIndex >= m_nodes.size()) return false;
+    Node* node = m_nodes[nodeIndex];
+    if (!node) return false;
+    if (nodeIndex == 0) return false;
+    if (now - node->getLastHitTime() < cooldown) return false;
+
+    node->setLastHitTime(now);
+    int armor = node->getArmor();
+    armor -= 1;
+    node->setArmor(armor);
+    if (armor > 0) return false;
+
+    outX = node->getX();
+    outY = node->getY();
+    delete node;
+    m_nodes.erase(m_nodes.begin() + nodeIndex);
+    recomputeLayout();
+    rebuildTopology();
+    return true;
 }

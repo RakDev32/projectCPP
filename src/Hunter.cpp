@@ -23,7 +23,8 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
         addNode(node);
         addEdge(0, (int)m_nodes.size() - 1);
     }
-    setPosition(m_x, m_y);
+    recomputeLayout();
+    rebuildTopology();
 
     m_maxSpeed = 90.0f;
     m_accel = 240.0f;
@@ -66,7 +67,7 @@ void Hunter::update(float dt)
         m_nodes[0]->setX(m_x);
         m_nodes[0]->setY(m_y);
     }
-    applyGraphForces(dt);
+    recomputeLayout();
 }
 
 void Hunter::draw(float camX, float camY) const

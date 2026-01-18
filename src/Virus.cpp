@@ -23,7 +23,8 @@ Virus::Virus(float x, float y) : Organism(x, y)
         addNode(node);
         addEdge(0, (int)m_nodes.size() - 1);
     }
-    setPosition(m_x, m_y);
+    recomputeLayout();
+    rebuildTopology();
 
     float mass = std::max(getMass(), 1.0f);
     m_speed = std::min(80.0f, 110.0f / std::sqrt(mass));
@@ -49,7 +50,7 @@ void Virus::update(float dt)
         m_nodes[0]->setX(m_x);
         m_nodes[0]->setY(m_y);
     }
-    applyGraphForces(dt);
+    recomputeLayout();
 }
 
 void Virus::draw(float camX, float camY) const

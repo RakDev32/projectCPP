@@ -7,7 +7,6 @@ class Organism {
 protected:
     std::vector<Node*> m_nodes;
     std::vector<std::pair<int, int>> m_edges;
-    std::vector<std::pair<float, float>> m_nodeVelocities;
     size_t m_coreIndex = 0;
 
     float m_x = 0.0f;
@@ -36,12 +35,15 @@ public:
     void setVelocity(float vx, float vy) { m_vx = vx; m_vy = vy; }
     
     float getRadius() const;
+    float getVisualRadius() const;
     float getMass() const;
     size_t getNodeCount() const { return m_nodes.size(); }
     void setRadius(float r);
     void growByArea(float eatenRadius);
     void growNodeByArea(size_t nodeIndex, float eatenRadius);
     void addNodeNear(size_t baseIndex, float radius);
+    void recomputeLayout();
+    void rebuildTopology();
     // nodes
     void addNode(Node* n);
     void addEdge(int fromIndex, int toIndex);
@@ -52,9 +54,8 @@ public:
     bool checkCollisionWithNode(const Node* target) const;
     int findCollidingNode(const Node* target) const;
     bool checkCollisionWithOrganism(const Organism& other, int* outMyIndex, int* outOtherIndex) const;
-    void updateInfection(float dt);
-    void applyGraphForces(float dt);
-    void infectNode(size_t nodeIndex);
+    int findCollidingNodeWithPoint(float px, float py, float radius) const;
+    bool applyHitToNode(size_t nodeIndex, float now, float cooldown, float& outX, float& outY);
 
     // polymorphic API
     virtual void update(float dt) = 0;

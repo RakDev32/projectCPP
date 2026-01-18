@@ -32,6 +32,8 @@ private:
     std::vector<class Organism*> m_entities;
 
     std::vector<class Node*> m_food; // STL συλλογή για τα "φαγητά"
+    std::vector<class DroppedPellet*> m_pellets;
+    float m_time = 0.0f;
     
 
 

@@ -2,6 +2,7 @@
 #include "Hunter.h"
 #include "Virus.h"
 #include "Node.h"
+#include "DroppedPellet.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -28,7 +29,11 @@ GlobalState::~GlobalState() {
     for (auto* entity : m_entities) {
         delete entity;
     }
+    for (auto* pellet : m_pellets) {
+        delete pellet;
+    }
     m_entities.clear();
+    m_pellets.clear();
 }
 
 void GlobalState::init() {
@@ -40,8 +45,10 @@ void GlobalState::init() {
     }
     m_entities.clear();
     m_food.clear();
+    m_pellets.clear();
     m_score = 0;
     m_gameOver = false;
+    m_time = 0.0f;
 
     // δημιούργησε player
     m_player = new Hunter(m_worldW * 0.5f, m_worldH * 0.5f);
@@ -65,8 +72,12 @@ void GlobalState::reset()
     for (auto* entity : m_entities) {
         delete entity;
     }
+    for (auto* pellet : m_pellets) {
+        delete pellet;
+    }
     m_entities.clear();
     m_food.clear();
+    m_pellets.clear();
     m_player = nullptr;
     init();
 }
@@ -105,6 +116,7 @@ void GlobalState::destroyInstance()
 void GlobalState::update(float dt)
 {
     if (dt <= 0.0f) return;
+    m_time += dt;
     if (dt > 0.05f) dt = 0.05f; // clamp dt για σταθερότητα
     if (m_gameOver) {
         const float buttonW = 220.0f;
@@ -135,7 +147,8 @@ void GlobalState::update(float dt)
     for (auto* e : m_entities) {
         if (e && e->isAlive()) {
             e->update(dt);
-            e->updateInfection(dt);
+            e->recomputeLayout();
+            e->rebuildTopology();
         }
     }
 
@@ -182,6 +195,11 @@ void GlobalState::update(float dt)
 
             float dx = bx - ax;
             float dy = by - ay;
+            float dist2 = dx * dx + dy * dy;
+            float reach = A->getVisualRadius() + B->getVisualRadius();
+            if (dist2 > reach * reach) {
+                continue;
+            }
 
             int aNode = -1;
             int bNode = -1;
@@ -192,9 +210,13 @@ void GlobalState::update(float dt)
                 float overlap = (rA + rB) - dist;
                 // overlap -> eat if size advantage
                 if (mA > mB * EAT_MARGIN) {
-                    size_t gain = std::max<size_t>(1, (size_t)(B->getNodeCount() * 0.5f));
-                    for (size_t g = 0; g < gain; ++g) {
-                        A->addNodeNear((size_t)std::max(aNode, 0), 5.0f);
+                    float px = 0.0f;
+                    float py = 0.0f;
+                    if (B->applyHitToNode((size_t)std::max(bNode, 0), m_time, 0.25f, px, py)) {
+                        m_pellets.push_back(new DroppedPellet(px, py, 4.0f));
+                        if (B->getNodeCount() == 0) {
+                            B->kill();
+                        }
                     }
                     if (A == m_player) {
                         addScore(10);
@@ -202,12 +224,15 @@ void GlobalState::update(float dt)
                     if (B == m_player) {
                         m_gameOver = true;
                     }
-                    B->kill();
                 }
                 else if (mB > mA * EAT_MARGIN) {
-                    size_t gain = std::max<size_t>(1, (size_t)(A->getNodeCount() * 0.5f));
-                    for (size_t g = 0; g < gain; ++g) {
-                        B->addNodeNear((size_t)std::max(bNode, 0), 5.0f);
+                    float px = 0.0f;
+                    float py = 0.0f;
+                    if (A->applyHitToNode((size_t)std::max(aNode, 0), m_time, 0.25f, px, py)) {
+                        m_pellets.push_back(new DroppedPellet(px, py, 4.0f));
+                        if (A->getNodeCount() == 0) {
+                            A->kill();
+                        }
                     }
                     if (B == m_player) {
                         addScore(10);
@@ -215,15 +240,9 @@ void GlobalState::update(float dt)
                     if (A == m_player) {
                         m_gameOver = true;
                     }
-                    A->kill();
                 }
                 else {
                     separateEntities(A, B, dx, dy, dist, overlap);
-                    if (dynamic_cast<Virus*>(A) && dynamic_cast<Hunter*>(B) && bNode >= 0) {
-                        B->infectNode((size_t)bNode);
-                    } else if (dynamic_cast<Virus*>(B) && dynamic_cast<Hunter*>(A) && aNode >= 0) {
-                        A->infectNode((size_t)aNode);
-                    }
                 }
             }
         }
@@ -249,6 +268,29 @@ void GlobalState::update(float dt)
             }
         }
     }
+
+    for (auto* pellet : m_pellets) {
+        if (!pellet || !pellet->isActive()) continue;
+        for (auto* entity : m_entities) {
+            if (!entity || !entity->isAlive()) continue;
+            int nodeIndex = entity->findCollidingNodeWithPoint(pellet->getX(), pellet->getY(), pellet->getRadius());
+            if (nodeIndex >= 0) {
+                entity->addNodeNear((size_t)nodeIndex, 5.0f);
+                pellet->deactivate();
+                break;
+            }
+        }
+    }
+
+    m_pellets.erase(
+        std::remove_if(m_pellets.begin(), m_pellets.end(),
+            [](DroppedPellet* pellet) {
+                if (!pellet) return true;
+                if (!pellet->isActive()) { delete pellet; return true; }
+                return false;
+            }),
+        m_pellets.end()
+    );
 
     // -----------------------------
     // 5) Camera follows player
@@ -298,6 +340,9 @@ void GlobalState::update(float dt)
 void GlobalState::draw() {
     for (auto* f : m_food) {
         if (f) f->draw(m_camX, m_camY);
+    }
+    for (auto* pellet : m_pellets) {
+        if (pellet) pellet->draw(m_camX, m_camY);
     }
 
     for (auto* entity : m_entities) {
