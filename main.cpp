@@ -26,7 +26,8 @@ int main() {
     graphics::setCanvasSize(1000, 600);
     graphics::setCanvasScaleMode(graphics::CANVAS_SCALE_FIT);
 
-    // 5. Χρήση default γραμματοσειράς (χωρίς binary assets)
+   
+    graphics::setFont("assets/Geom-Medium.ttf");
 
     // 6. Εκκίνηση του main loop της εφαρμογής
     graphics::startMessageLoop();

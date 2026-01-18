@@ -228,9 +228,7 @@ void GlobalState::update(float dt)
                             B->kill();
                         }
                     }
-                    if (B == m_player) {
-                        m_gameOver = true;
-                    }
+                 
                 }
                 else if (mB > mA * EAT_MARGIN) {
                     float px = 0.0f;
@@ -241,9 +239,7 @@ void GlobalState::update(float dt)
                             A->kill();
                         }
                     }
-                    if (A == m_player) {
-                        m_gameOver = true;
-                    }
+                    
                 }
                 else {
                     separateEntities(A, B, dx, dy, dist, overlap);
@@ -356,6 +352,10 @@ void GlobalState::update(float dt)
         m_entities.push_back(new Virus(randRange(0.0f, m_worldW), randRange(0.0f, m_worldH)));
         ++npcCount;
     }
+    if (m_player && m_player->getNodeCount() == 0) {
+        m_gameOver = true;
+    }
+
 }
 
 void GlobalState::draw() {

@@ -1,4 +1,4 @@
-#include "Organism.h"
+﻿#include "Organism.h"
 #include "graphics.h"
 #include <algorithm>
 #include <cmath>
@@ -299,7 +299,18 @@ bool Organism::applyHitToNode(size_t nodeIndex, float now, float cooldown, float
     if (nodeIndex >= m_nodes.size()) return false;
     Node* node = m_nodes[nodeIndex];
     if (!node) return false;
-    if (nodeIndex == 0) return false;
+    {
+        if (m_nodes.size() > 1) return false;
+
+        // τελευταίος κόμβος -> "πεθαίνει"
+        outX = node->getX();
+        outY = node->getY();
+        delete node;
+        m_nodes.clear();
+        m_edges.clear();
+        m_outerRadius = 0.0f;
+        return true;
+    }
     if (now - node->getLastHitTime() < cooldown) return false;
 
     node->setLastHitTime(now);
