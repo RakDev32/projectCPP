@@ -13,8 +13,9 @@ private:
 
     // Δεδομένα για τη ροή και την κατάσταση [cite: 86]
     float m_canvas_width = 1000.0f;
-    float m_canvas_height = 500.0f;
+    float m_canvas_height = 600.0f;
     int m_score = 0;
+    int m_highScore = 0;
     float m_worldW = 4000.0f;
     float m_worldH = 4000.0f;
 
@@ -25,11 +26,15 @@ private:
     float m_viewH = 600.0f;
 
     Hunter* m_player = nullptr;
+    bool m_gameOver = false;
+    int m_minNpcCount = 12;
 
     // Συλλογή STL για τη διαχείριση των οντοτήτων [cite: 81, 82]
     std::vector<class Organism*> m_entities;
 
     std::vector<class Node*> m_food; // STL συλλογή για τα "φαγητά"
+    std::vector<class DroppedPellet*> m_pellets;
+    float m_time = 0.0f;
     
 
 
@@ -40,6 +45,7 @@ public:
     // Υποχρεωτικές μέθοδοι [cite: 87]
     static void destroyInstance();
     void init();
+    void reset();
     void update(float dt);
     void draw();
 
@@ -50,7 +56,7 @@ public:
     float getCanvasWidth() const { return m_canvas_width; }
     float getCanvasHeight() const { return m_canvas_height; }
     int getScore() const { return m_score; }
-    void addScore(int s) { m_score += s; }
+    int getHighScore() const { return m_highScore; }
 
 
 
