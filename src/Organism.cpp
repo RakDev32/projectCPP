@@ -64,14 +64,6 @@ void Organism::drawEdges(float camX, float camY) const
     }
 }
 
-void Organism::drawGlow(float camX, float camY) const
-{
-    for (auto* node : m_nodes) {
-        if (!node) continue;
-        drawGlowDisk(node->getX(), node->getY(), node->getRadius(), camX, camY, 0.2f, 0.6f, 1.0f);
-    }
-}
-
 static void drawGlowDisk(float x, float y, float radius, float camX, float camY, float r, float g, float b)
 {
     graphics::Brush glow;
@@ -84,6 +76,14 @@ static void drawGlowDisk(float x, float y, float radius, float camX, float camY,
     graphics::drawDisk(x - camX, y - camY, radius * 1.25f, glow);
     glow.fill_opacity = 0.35f;
     graphics::drawDisk(x - camX, y - camY, radius * 1.05f, glow);
+}
+
+void Organism::drawGlow(float camX, float camY) const
+{
+    for (auto* node : m_nodes) {
+        if (!node) continue;
+        drawGlowDisk(node->getX(), node->getY(), node->getRadius(), camX, camY, 0.2f, 0.6f, 1.0f);
+    }
 }
 
 void Organism::setPosition(float x, float y)
