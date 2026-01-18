@@ -4,16 +4,12 @@
 // Callback για τη σχεδίαση των γραφικών
 void draw() {
     GlobalState::getInstance()->draw();
-
-    const float dt = 0.016f;               // fixed timestep (60 FPS feel)
-    GlobalState::getInstance()->update(dt);
-    GlobalState::getInstance()->draw();
 }
 
 // Callback για την ανανέωση της λογικής (update loop)
 void update(float dt) {
     GlobalState::getInstance()->update(dt);
-}///ddgs
+}
 
 int main() {
     // 1. Δημιουργία παραθύρου (υποχρεωτικά μέσω SGG) [cite: 73]
@@ -24,14 +20,13 @@ int main() {
 
     // 3. Ορισμός των functions που θα καλεί η βιβλιοθήκη
     graphics::setDrawFunction(draw);
+    graphics::setUpdateFunction(update);
 
     // 4. Ρύθμιση καμβά (Virtual Coordinates) [cite: 88]
     graphics::setCanvasSize(1000, 600);
     graphics::setCanvasScaleMode(graphics::CANVAS_SCALE_FIT);
 
-    // 5. Φόρτωση γραμματοσειράς (Assets)
-    // Προσοχή: Το αρχείο πρέπει να υπάρχει στο φάκελο assets/
-    graphics::setFont("assets/orange.ttf");
+    // 5. Χρήση default γραμματοσειράς (χωρίς binary assets)
 
     // 6. Εκκίνηση του main loop της εφαρμογής
     graphics::startMessageLoop();

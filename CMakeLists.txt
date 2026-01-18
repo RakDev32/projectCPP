@@ -10,6 +10,7 @@ include_directories(sgg_lib/include)
 
 # 2. Μάζεψε τα αρχεία σου
 file(GLOB SOURCES "src/*.cpp" "main.cpp")
+list(APPEND SOURCES "src/DroppedPellet.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
