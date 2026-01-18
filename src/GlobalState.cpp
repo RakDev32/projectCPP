@@ -124,9 +124,6 @@ static void separateEntities(Organism* a, Organism* b, float dx, float dy, float
 
     a->setPosition(a->getX() - nx * push, a->getY() - ny * push);
     b->setPosition(b->getX() + nx * push, b->getY() + ny * push);
-
-    a->setVelocity(a->getVx() - nx * push * 2.0f, a->getVy() - ny * push * 2.0f);
-    b->setVelocity(b->getVx() + nx * push * 2.0f, b->getVy() + ny * push * 2.0f);
 }
 void GlobalState::destroyInstance()
 {
@@ -227,8 +224,8 @@ void GlobalState::update(float dt)
             int aNode = -1;
             int bNode = -1;
             if (A->checkCollisionWithOrganism(*B, &aNode, &bNode)) {
-                float rA = std::sqrt(std::max(mA, 1.0f));
-                float rB = std::sqrt(std::max(mB, 1.0f));
+                float rA = A->getVisualRadius();
+                float rB = B->getVisualRadius();
                 float dist = std::sqrt(dx * dx + dy * dy);
                 float overlap = (rA + rB) - dist;
                 // overlap -> eat if size advantage
@@ -304,9 +301,6 @@ void GlobalState::update(float dt)
 
     for (auto* entity : m_entities) {
         if (entity && entity->getNodeCount() == 0) {
-            if (entity == m_player) {
-                m_gameOver = true;
-            }
             entity->kill();
         }
     }
@@ -316,7 +310,6 @@ void GlobalState::update(float dt)
         m_highScore = std::max(m_highScore, m_score);
         if (m_player->getNodeCount() == 0) {
             m_gameOver = true;
-            m_player->kill();
         }
     } else {
         m_score = 0;

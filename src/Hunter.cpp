@@ -11,6 +11,7 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
     auto* core = new Node(x, y, 22.0f);
     core->setColor(0.2f, 0.7f, 1.0f);
     addNode(core);
+    setNodeColor(0.1f, 0.45f, 0.9f);
 
     const int ringCount = 6;
     const float ringRadius = 12.0f;

@@ -193,10 +193,17 @@ void Organism::addNodeNear(size_t baseIndex, float radius)
     float oy = std::sin(angle) * dist;
 
     auto* node = new Node(m_x + ox, m_y + oy, radius);
-    node->setColor(0.15f, 0.55f, 0.95f);
+    node->setColor(m_nodeColor[0], m_nodeColor[1], m_nodeColor[2]);
     addNode(node);
     recomputeLayout();
     rebuildTopology();
+}
+
+void Organism::setNodeColor(float r, float g, float b)
+{
+    m_nodeColor[0] = r;
+    m_nodeColor[1] = g;
+    m_nodeColor[2] = b;
 }
 
 void Organism::recomputeLayout()

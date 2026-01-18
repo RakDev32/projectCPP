@@ -9,6 +9,7 @@ protected:
     std::vector<std::pair<int, int>> m_edges;
     size_t m_coreIndex = 0;
     float m_outerRadius = 0.0f;
+    float m_nodeColor[3] = { 0.15f, 0.55f, 0.95f };
 
     float m_x = 0.0f;
     float m_y = 0.0f;
@@ -43,6 +44,7 @@ public:
     void growByArea(float eatenRadius);
     void growNodeByArea(size_t nodeIndex, float eatenRadius);
     void addNodeNear(size_t baseIndex, float radius);
+    void setNodeColor(float r, float g, float b);
     void recomputeLayout();
     void rebuildTopology();
     // nodes

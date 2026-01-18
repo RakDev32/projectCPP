@@ -11,6 +11,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
     auto* core = new Node(x, y, baseRadius);
     core->setColor(0.9f, 0.3f, 0.3f);
     addNode(core);
+    setNodeColor(0.7f, 0.15f, 0.2f);
 
     const int ringCount = 5;
     float ringRadius = baseRadius * 0.7f;
