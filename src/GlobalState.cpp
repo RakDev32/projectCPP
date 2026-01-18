@@ -295,6 +295,9 @@ void GlobalState::update(float dt)
 
     for (auto* entity : m_entities) {
         if (entity && entity->getNodeCount() == 0) {
+            if (entity == m_player) {
+                m_gameOver = true;
+            }
             entity->kill();
         }
     }
@@ -304,7 +307,10 @@ void GlobalState::update(float dt)
         m_highScore = std::max(m_highScore, m_score);
         if (m_player->getNodeCount() == 0) {
             m_gameOver = true;
+            m_player->kill();
         }
+    } else {
+        m_score = 0;
     }
 
     // -----------------------------
