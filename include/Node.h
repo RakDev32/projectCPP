@@ -27,6 +27,7 @@ public:
     int getArmor() const { return m_armor; }
     void setLastHitTime(float time) { m_lastHitTime = time; }
     float getLastHitTime() const { return m_lastHitTime; }
+    void getColor(float& r, float& g, float& b) const { r = color[0]; g = color[1]; b = color[2]; }
     //setters
     void setX(float x) { this->x = x; }
     void setY(float y) {this-> y= y;}

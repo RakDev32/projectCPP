@@ -13,7 +13,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
     addNode(core);
     setNodeColor(0.7f, 0.15f, 0.2f);
 
-    const int ringCount = 5;
+    const int ringCount = 2 + (rand() % 11);
     float ringRadius = baseRadius * 0.7f;
     for (int i = 0; i < ringCount; ++i) {
         float angle = (6.2831853f / ringCount) * i;

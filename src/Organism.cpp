@@ -193,7 +193,13 @@ void Organism::addNodeNear(size_t baseIndex, float radius)
     float oy = std::sin(angle) * dist;
 
     auto* node = new Node(m_x + ox, m_y + oy, radius);
-    node->setColor(m_nodeColor[0], m_nodeColor[1], m_nodeColor[2]);
+    float cr = m_nodeColor[0];
+    float cg = m_nodeColor[1];
+    float cb = m_nodeColor[2];
+    if (!m_nodes.empty() && m_nodes[0]) {
+        m_nodes[0]->getColor(cr, cg, cb);
+    }
+    node->setColor(cr, cg, cb);
     addNode(node);
     recomputeLayout();
     rebuildTopology();
@@ -317,6 +323,7 @@ bool Organism::applyHitToNode(size_t nodeIndex, float now, float cooldown, float
         delete node;
         m_nodes.clear();
         m_edges.clear();
+        m_outerRadius = 0.0f;
         return true;
     }
     if (now - node->getLastHitTime() < cooldown) return false;
