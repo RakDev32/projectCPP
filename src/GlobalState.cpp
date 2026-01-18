@@ -8,10 +8,8 @@
 #include <iostream>
 #include <ctime>
 
-// 1. Αρχικοποίηση του static δείκτη (ΥΠΟΧΡΕΩΤΙΚΟ)
 GlobalState* GlobalState::m_instance = nullptr;
 
-// 2. Υλοποίηση της getInstance
 GlobalState* GlobalState::getInstance() {
     if (!m_instance) {
         m_instance = new GlobalState();
@@ -19,45 +17,42 @@ GlobalState* GlobalState::getInstance() {
     return m_instance;
 }
 
+namespace {
+template <typename T>
+void clearOwned(std::vector<T*>& items)
+{
+    for (auto* item : items) {
+        delete item;
+    }
+    items.clear();
+}
+}
+
 static float randRange(float lo, float hi)
 {
     return lo + (hi - lo) * ((float)rand() / (float)RAND_MAX);
 }
 
-// 3. Υλοποίηση του Destructor
 GlobalState::~GlobalState() {
-    for (auto* entity : m_entities) {
-        delete entity;
-    }
-    for (auto* pellet : m_pellets) {
-        delete pellet;
-    }
-    for (auto* food : m_food) {
-        delete food;
-    }
-    m_entities.clear();
-    m_pellets.clear();
-    m_food.clear();
+    clearOwned(m_entities);
+    clearOwned(m_pellets);
+    clearOwned(m_food);
 }
 
 void GlobalState::init() {
-    // ΜΟΝΟ ΔΗΜΙΟΥΡΓΙΑ ANTIKEIMENΩΝ ΕΔΩ
     static bool seeded = false;
     if (!seeded) {
         std::srand((unsigned int)std::time(nullptr));
         seeded = true;
     }
-    m_entities.clear();
-    for (auto* food : m_food) {
-        delete food;
-    }
-    m_food.clear();
-    m_pellets.clear();
+    clearOwned(m_entities);
+    clearOwned(m_pellets);
+    clearOwned(m_food);
+    m_player = nullptr;
     m_score = 0;
     m_gameOver = false;
     m_time = 0.0f;
 
-    // δημιούργησε player
     m_player = new Hunter(m_worldW * 0.5f, m_worldH * 0.5f);
     m_entities.push_back(m_player);
     int playerExtra = 4 + (rand() % 7);
@@ -67,7 +62,6 @@ void GlobalState::init() {
     m_player->recomputeLayout();
     m_player->rebuildTopology();
 
-    // δημιούργησε NPCs
     for (int i = 0; i < 15; ++i) {
         auto* npc = new Virus(randRange(0.0f, m_worldW), randRange(0.0f, m_worldH));
         int npcExtra = 2 + (rand() % 10);
@@ -79,7 +73,6 @@ void GlobalState::init() {
         m_entities.push_back(npc);
     }
 
-    // δημιούργησε food
     for (int i = 0; i < 80; ++i) {
         m_food.push_back(new Node(randRange(0.0f, m_worldW),
             randRange(0.0f, m_worldH),
@@ -89,19 +82,6 @@ void GlobalState::init() {
 
 void GlobalState::reset()
 {
-    for (auto* entity : m_entities) {
-        delete entity;
-    }
-    for (auto* pellet : m_pellets) {
-        delete pellet;
-    }
-    for (auto* food : m_food) {
-        delete food;
-    }
-    m_entities.clear();
-    m_food.clear();
-    m_pellets.clear();
-    m_player = nullptr;
     init();
 }
 static float clampf(float v, float lo, float hi)
@@ -137,7 +117,7 @@ void GlobalState::update(float dt)
 {
     if (dt <= 0.0f) return;
     m_time += dt;
-    if (dt > 0.05f) dt = 0.05f; // clamp dt για σταθερότητα
+    if (dt > 0.05f) dt = 0.05f;
     if (m_gameOver) {
         const float buttonW = 220.0f;
         const float buttonH = 42.0f;
@@ -161,9 +141,6 @@ void GlobalState::update(float dt)
         return;
     }
 
-    // -----------------------------
-    // 1) Update all entities
-    // -----------------------------
     for (auto* e : m_entities) {
         if (e && e->isAlive()) {
             e->update(dt);
@@ -172,9 +149,6 @@ void GlobalState::update(float dt)
         }
     }
 
-    // -----------------------------
-    // 2) Keep entities inside world bounds (map)
-    // -----------------------------
     for (auto* e : m_entities) {
         if (!e || !e->isAlive()) continue;
 
@@ -195,9 +169,6 @@ void GlobalState::update(float dt)
         e->setPosition(clampedX, clampedY);
     }
 
-    // -----------------------------
-    // 3) Eat & grow (entity vs entity)
-    // -----------------------------
     const float EAT_MARGIN = 1.10f;
 
     for (int i = 0; i < (int)m_entities.size(); ++i) {
@@ -228,7 +199,6 @@ void GlobalState::update(float dt)
                 float rB = B->getVisualRadius();
                 float dist = std::sqrt(dx * dx + dy * dy);
                 float overlap = (rA + rB) - dist;
-                // overlap -> eat if size advantage
                 if (mA > mB * EAT_MARGIN) {
                     float px = 0.0f;
                     float py = 0.0f;
@@ -272,9 +242,6 @@ void GlobalState::update(float dt)
         }
     }
 
-    // -----------------------------
-    // 4) Entities eat food
-    // -----------------------------
     for (auto* entity : m_entities) {
         if (!entity || !entity->isAlive()) continue;
 
@@ -329,9 +296,6 @@ void GlobalState::update(float dt)
         m_score = 0;
     }
 
-    // -----------------------------
-    // 5) Camera follows player
-    // -----------------------------
     if (m_player) {
         float px = m_player->getX();
         float py = m_player->getY();
@@ -343,9 +307,6 @@ void GlobalState::update(float dt)
         m_camY = clampf(m_camY, 0.0f, m_worldH - m_viewH);
     }
 
-    // -----------------------------
-    // 6) Cleanup dead entities (safe erase/delete)
-    // -----------------------------
     m_entities.erase(
         std::remove_if(m_entities.begin(), m_entities.end(),
             [this](Organism* e) {
@@ -386,7 +347,6 @@ void GlobalState::draw() {
         if (entity) entity->draw(m_camX, m_camY);
     }
 
-    // 3) Draw HUD
     graphics::Brush br;
     br.fill_color[0] = 1.0f;
     br.fill_color[1] = 1.0f;
@@ -427,7 +387,6 @@ void GlobalState::draw() {
         graphics::drawText(m_viewW * 0.5f - 48.0f, m_viewH * 0.5f + 66.0f, 18, "Play Again", buttonText);
     }
 
-    // 4) Minimap
     const float miniW = 180.0f;
     const float miniH = 180.0f;
     const float miniPadding = 12.0f;

@@ -1,7 +1,7 @@
 #pragma once
 #include "Organism.h"
 
-class Hunter : public Organism { // Κληρονομικότητα [cite: 77]
+class Hunter : public Organism {
 public:
     Hunter(float x, float y);
 
