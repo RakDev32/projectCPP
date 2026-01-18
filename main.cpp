@@ -18,6 +18,8 @@ int main() {
     // 2. Αρχικοποίηση του Singleton GlobalState [cite: 85, 87]
     GlobalState::getInstance()->init();
 
+    
+
     // 3. Ορισμός των functions που θα καλεί η βιβλιοθήκη
     graphics::setDrawFunction(draw);
     graphics::setUpdateFunction(update);
@@ -25,7 +27,7 @@ int main() {
     // 4. Ρύθμιση καμβά (Virtual Coordinates) [cite: 88]
     graphics::setCanvasSize(1000, 600);
     graphics::setCanvasScaleMode(graphics::CANVAS_SCALE_FIT);
-
+    graphics::setFont("assets/font.ttf");
     // 5. Χρήση default γραμματοσειράς (χωρίς binary assets)
 
     // 6. Εκκίνηση του main loop της εφαρμογής

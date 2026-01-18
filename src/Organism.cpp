@@ -1,4 +1,4 @@
-#include "Organism.h"
+﻿#include "Organism.h"
 #include "graphics.h"
 #include <algorithm>
 #include <cmath>
@@ -261,7 +261,13 @@ void Organism::rebuildTopology()
     for (size_t i = 1; i < n; ++i) {
         addEdge(0, (int)i);
         if (m_nodes[i]) {
-            m_nodes[i]->setArmor(mode == 2 ? 2 : 1);
+            int defArmor = (mode == 2 ? 2 : 1);
+            int curArmor = m_nodes[i]->getArmor();
+
+            // ΜΗΝ κάνεις reset προς τα πάνω. Κράτα τυχόν damage.
+            if (curArmor > defArmor) curArmor = defArmor;     // αν ποτέ ξεφύγει
+            if (curArmor <= 0) curArmor = defArmor;           // νέο/άκυρο armor
+            m_nodes[i]->setArmor(curArmor);
         }
     }
 

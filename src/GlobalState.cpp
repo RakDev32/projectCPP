@@ -210,8 +210,8 @@ void GlobalState::update(float dt)
 
             float ax = A->getX(), ay = A->getY();
             float bx = B->getX(), by = B->getY();
-            float mA = A->getMass();
-            float mB = B->getMass();
+            float mA = A->getNodeCount();
+            float mB = B->getNodeCount();
 
             float dx = bx - ax;
             float dy = by - ay;
@@ -237,7 +237,10 @@ void GlobalState::update(float dt)
                         hitIdx = B->findNearestOuterNodeToPoint(ax, ay);
                     }
                     if (B->applyHitToNode((size_t)std::max(hitIdx, 0), m_time, 0.25f, px, py)) {
-                        m_pellets.push_back(new DroppedPellet(px, py, 4.0f));
+                        int gainBase = aNode;
+                        if (gainBase < 0) gainBase = 0;
+                        A->addNodeNear((size_t)gainBase, 5.0f);
+
                         if (B->getNodeCount() == 0) {
                             B->kill();
                         }
@@ -252,7 +255,10 @@ void GlobalState::update(float dt)
                         hitIdx = A->findNearestOuterNodeToPoint(bx, by);
                     }
                     if (A->applyHitToNode((size_t)std::max(hitIdx, 0), m_time, 0.25f, px, py)) {
-                        m_pellets.push_back(new DroppedPellet(px, py, 4.0f));
+                        int gainBase = bNode;
+                        if (gainBase < 0) gainBase = 0;
+                        B->addNodeNear((size_t)gainBase, 5.0f);
+
                         if (A->getNodeCount() == 0) {
                             A->kill();
                         }
