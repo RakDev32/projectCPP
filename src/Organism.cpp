@@ -342,3 +342,22 @@ bool Organism::applyHitToNode(size_t nodeIndex, float now, float cooldown, float
     rebuildTopology();
     return true;
 }
+
+int Organism::findNearestOuterNodeToPoint(float px, float py) const
+{
+    if (m_nodes.size() <= 1) return 0;
+    int best = -1;
+    float bestD2 = 1e30f;
+    for (size_t i = 1; i < m_nodes.size(); ++i) {
+        Node* node = m_nodes[i];
+        if (!node) continue;
+        float dx = node->getX() - px;
+        float dy = node->getY() - py;
+        float d2 = dx * dx + dy * dy;
+        if (d2 < bestD2) {
+            bestD2 = d2;
+            best = (int)i;
+        }
+    }
+    return (best >= 0) ? best : 0;
+}

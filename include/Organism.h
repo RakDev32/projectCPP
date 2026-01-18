@@ -59,6 +59,7 @@ public:
     bool checkCollisionWithOrganism(const Organism& other, int* outMyIndex, int* outOtherIndex) const;
     int findCollidingNodeWithPoint(float px, float py, float radius) const;
     bool applyHitToNode(size_t nodeIndex, float now, float cooldown, float& outX, float& outY);
+    int findNearestOuterNodeToPoint(float px, float py) const;
 
     // polymorphic API
     virtual void update(float dt) = 0;

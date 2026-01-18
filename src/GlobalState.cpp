@@ -232,7 +232,11 @@ void GlobalState::update(float dt)
                 if (mA > mB * EAT_MARGIN) {
                     float px = 0.0f;
                     float py = 0.0f;
-                    if (B->applyHitToNode((size_t)std::max(bNode, 0), m_time, 0.25f, px, py)) {
+                    int hitIdx = bNode;
+                    if (hitIdx == 0 && B->getNodeCount() > 1) {
+                        hitIdx = B->findNearestOuterNodeToPoint(ax, ay);
+                    }
+                    if (B->applyHitToNode((size_t)std::max(hitIdx, 0), m_time, 0.25f, px, py)) {
                         m_pellets.push_back(new DroppedPellet(px, py, 4.0f));
                         if (B->getNodeCount() == 0) {
                             B->kill();
@@ -243,7 +247,11 @@ void GlobalState::update(float dt)
                 else if (mB > mA * EAT_MARGIN) {
                     float px = 0.0f;
                     float py = 0.0f;
-                    if (A->applyHitToNode((size_t)std::max(aNode, 0), m_time, 0.25f, px, py)) {
+                    int hitIdx = aNode;
+                    if (hitIdx == 0 && A->getNodeCount() > 1) {
+                        hitIdx = A->findNearestOuterNodeToPoint(bx, by);
+                    }
+                    if (A->applyHitToNode((size_t)std::max(hitIdx, 0), m_time, 0.25f, px, py)) {
                         m_pellets.push_back(new DroppedPellet(px, py, 4.0f));
                         if (A->getNodeCount() == 0) {
                             A->kill();
