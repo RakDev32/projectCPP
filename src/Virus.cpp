@@ -10,7 +10,7 @@ Virus::Virus(float x, float y) : Organism(x, y)
     float baseRadius = 8.0f + (float)(rand() % 33);
     auto* core = new Node(x, y, baseRadius);
     core->setColor(0.9f, 0.3f, 0.3f);
-    addNode(core, 0.0f, 0.0f);
+    addNode(core);
 
     const int ringCount = 5;
     float ringRadius = baseRadius * 0.7f;
@@ -18,9 +18,9 @@ Virus::Virus(float x, float y) : Organism(x, y)
         float angle = (6.2831853f / ringCount) * i;
         float ox = std::cos(angle) * ringRadius;
         float oy = std::sin(angle) * ringRadius;
-        auto* node = new Node(x, y, baseRadius * 0.4f);
+        auto* node = new Node(x + ox, y + oy, baseRadius * 0.4f);
         node->setColor(0.7f, 0.15f, 0.2f);
-        addNode(node, ox, oy);
+        addNode(node);
         addEdge(0, (int)m_nodes.size() - 1);
     }
     setPosition(m_x, m_y);
@@ -45,7 +45,10 @@ void Virus::update(float dt)
 
     m_x += m_vx * dt;
     m_y += m_vy * dt;
-    setPosition(m_x, m_y);
+    if (!m_nodes.empty() && m_nodes[0]) {
+        m_nodes[0]->setX(m_x);
+        m_nodes[0]->setY(m_y);
+    }
     applyGraphForces(dt);
 }
 

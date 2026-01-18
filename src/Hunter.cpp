@@ -10,7 +10,7 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
 {
     auto* core = new Node(x, y, 22.0f);
     core->setColor(0.2f, 0.7f, 1.0f);
-    addNode(core, 0.0f, 0.0f);
+    addNode(core);
 
     const int ringCount = 6;
     const float ringRadius = 12.0f;
@@ -18,9 +18,9 @@ Hunter::Hunter(float x, float y) : Organism(x, y)
         float angle = (6.2831853f / ringCount) * i;
         float ox = std::cos(angle) * ringRadius;
         float oy = std::sin(angle) * ringRadius;
-        auto* node = new Node(x, y, 7.0f);
+        auto* node = new Node(x + ox, y + oy, 7.0f);
         node->setColor(0.1f, 0.45f, 0.9f);
-        addNode(node, ox, oy);
+        addNode(node);
         addEdge(0, (int)m_nodes.size() - 1);
     }
     setPosition(m_x, m_y);
@@ -62,7 +62,10 @@ void Hunter::update(float dt)
 
     m_x += m_vx * dt;
     m_y += m_vy * dt;
-    setPosition(m_x, m_y);
+    if (!m_nodes.empty() && m_nodes[0]) {
+        m_nodes[0]->setX(m_x);
+        m_nodes[0]->setY(m_y);
+    }
     applyGraphForces(dt);
 }
 

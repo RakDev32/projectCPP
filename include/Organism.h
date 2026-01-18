@@ -6,9 +6,9 @@
 class Organism {
 protected:
     std::vector<Node*> m_nodes;
-    std::vector<std::pair<float, float>> m_nodeOffsets;
     std::vector<std::pair<int, int>> m_edges;
     std::vector<std::pair<float, float>> m_nodeVelocities;
+    size_t m_coreIndex = 0;
 
     float m_x = 0.0f;
     float m_y = 0.0f;
@@ -44,7 +44,6 @@ public:
     void addNodeNear(size_t baseIndex, float radius);
     // nodes
     void addNode(Node* n);
-    void addNode(Node* n, float offsetX, float offsetY);
     void addEdge(int fromIndex, int toIndex);
     void drawEdges(float camX, float camY) const;
     void drawGlow(float camX, float camY) const;
