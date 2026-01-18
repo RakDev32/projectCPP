@@ -1,17 +1,15 @@
 #pragma once
 #include "graphics.h"
 #include <vector>
-#include "Organism.h" // Η κλάση βάσης που θα φτιάξεις
+#include "Organism.h"
 class Hunter;
 
 class GlobalState {
 private:
 
-    // Singleton pattern: Ιδιωτικός constructor
     GlobalState() {}
     static GlobalState* m_instance;
 
-    // Δεδομένα για τη ροή και την κατάσταση [cite: 86]
     float m_canvas_width = 1000.0f;
     float m_canvas_height = 600.0f;
     int m_score = 0;
@@ -29,20 +27,17 @@ private:
     bool m_gameOver = false;
     int m_minNpcCount = 12;
 
-    // Συλλογή STL για τη διαχείριση των οντοτήτων [cite: 81, 82]
     std::vector<class Organism*> m_entities;
 
-    std::vector<class Node*> m_food; // STL συλλογή για τα "φαγητά"
+    std::vector<class Node*> m_food;
     std::vector<class DroppedPellet*> m_pellets;
     float m_time = 0.0f;
     
 
 
 public:
-    // Κεντρικό σημείο πρόσβασης
     static GlobalState* getInstance();
 
-    // Υποχρεωτικές μέθοδοι [cite: 87]
     static void destroyInstance();
     void init();
     void reset();
@@ -52,14 +47,10 @@ public:
     float getCamX() const { return m_camX; }
     float getCamY() const { return m_camY; }
 
-    // Getters για κεντρική πρόσβαση δεδομένων
     float getCanvasWidth() const { return m_canvas_width; }
     float getCanvasHeight() const { return m_canvas_height; }
     int getScore() const { return m_score; }
     int getHighScore() const { return m_highScore; }
 
-
-
-    // Καταστροφέας για αποδέσμευση δυναμικής μνήμης [cite: 76]
     ~GlobalState();
 };

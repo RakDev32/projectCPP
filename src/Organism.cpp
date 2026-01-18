@@ -255,8 +255,8 @@ void Organism::rebuildTopology()
     if (n <= 1) return;
 
     int mode = 0;
-    if (n >= 20) mode = 2; // MESH
-    else if (n >= 10) mode = 1; // RING
+    if (n >= 20) mode = 2;
+    else if (n >= 10) mode = 1;
 
     for (size_t i = 1; i < n; ++i) {
         addEdge(0, (int)i);
@@ -264,9 +264,8 @@ void Organism::rebuildTopology()
             int defArmor = (mode == 2 ? 2 : 1);
             int curArmor = m_nodes[i]->getArmor();
 
-            // ΜΗΝ κάνεις reset προς τα πάνω. Κράτα τυχόν damage.
-            if (curArmor > defArmor) curArmor = defArmor;     // αν ποτέ ξεφύγει
-            if (curArmor <= 0) curArmor = defArmor;           // νέο/άκυρο armor
+            if (curArmor > defArmor) curArmor = defArmor;
+            if (curArmor <= 0) curArmor = defArmor;
             m_nodes[i]->setArmor(curArmor);
         }
     }
